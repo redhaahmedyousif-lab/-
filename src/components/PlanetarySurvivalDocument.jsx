@@ -57,12 +57,12 @@ const DASHBOARD = [
   },
   {
     sector: 'الانبعاثات الكوكبية',
-    target: 'خفض الصافية بنسبة 43% (2030) و84% (2050)',
+    target: 'خفض الانبعاثات الصافية بنسبة 43% (2030) و84% (2050)',
     baseline: 'مستويات انبعاثات عام 2019',
     method: 'إطار MRV الموحد (استناداً إلى إرشادات IPCC وWMO)',
   },
   {
-    sector: 'ضخ الهواء الحضري',
+    sector: 'تنقية الهواء الحضري',
     target: 'خفض PM_{2.5} بنسبة 35% في الموقع بحلول 2030',
     baseline: 'قراءات الـ 12 شهراً السابقة للتدخل',
     method: 'شبكات IoT الميدانية والأبراج الحضرية',
@@ -104,7 +104,7 @@ const CHAPTERS = [
       },
       {
         type: 'p',
-        text: 'في عام 2025، تجاوز متوسط حرارة سطح الأرض مستوى ما قبل الثورة الصناعية (1850–1900) بنحو **1.43 درجة مئوية (بهامش عدم يقين ±0.13°C)** — وفق تقرير المنظمة العالمية للأرصاد الجوية (WMO State of the Global Climate 2025) — ليكون بين أحرّ ثلاثة أحدث أعوام مسجلة في السجل المناخي الحديث. والأرقام وحدها لا تصف حجم الخطر؛ فكل جزء إضافي من الاحترار يزيد مخاطر والآثار السلبية على الأنظمة البشرية والطبيعية، ويسبب انكسار شرايين الحضارة، وتوقف نبض الأسواق واختلال التوازن البيئي (IPCC).',
+        text: 'في عام 2025، تجاوز متوسط حرارة سطح الأرض مستوى ما قبل الثورة الصناعية (1850–1900) بنحو **1.43 درجة مئوية (بهامش عدم يقين ±0.13°C)** — وفق تقرير المنظمة العالمية للأرصاد الجوية (WMO State of the Global Climate 2025) — ليكون بين أحرّ ثلاثة أحدث أعوام مسجلة في السجل المناخي الحديث. والأرقام وحدها لا تصف حجم الخطر؛ فكل جزء إضافي من الاحترار تزيد المخاطر والآثار السلبية على الأنظمة البشرية والطبيعية، ويسبب انكسار شرايين الحضارة، وتوقف نبض الأسواق واختلال التوازن البيئي (IPCC).',
       },
       {
         type: 'hammer',
@@ -157,7 +157,7 @@ const CHAPTERS = [
       { type: 'label', text: 'الفرضية الهندسية' },
       {
         type: 'p',
-        text: 'لا يوجد حل منفرد قادر على معالجة الأزمة المناخية. تقترح الوثيقة بنية متعددة الطبقات لحماية الكوكب: فنخفض مصادر الانبعاث أولاً، ثم نتعامل مع الانبعاثات المتبقية عبر التكنولوجيا، ثم نستعيد الأنظمة البيئية الحيوية، بينما تعمل البيانات، الحوكمة، والتمويل كـ **«طبقة عصبية كوكبية»** تغذي المنظومة بأكملها توجها.',
+        text: 'لا يوجد حل منفرد قادر على معالجة الأزمة المناخية. تقترح الوثيقة بنية متعددة الطبقات لحماية الكوكب: فنخفض مصادر الانبعاث أولاً، ثم نتعامل مع الانبعاثات المتبقية عبر التكنولوجيا، ثم نستعيد الأنظمة البيئية الحيوية، بينما تعمل البيانات، الحوكمة، والتمويل كـ **«طبقة عصبية كوكبية»** تغذي المنظومة بأكملها توجهاً وتنسيقاً.',
       },
     ],
   },
@@ -678,7 +678,7 @@ function ThemeToggle({ isDark, onToggle }) {
   );
 }
 
-function CopyButton({ onCopy, state }) {
+function CopyButton({ onCopy, state, compact = false }) {
   const label = state === 'copied' ? 'تم النسخ' : state === 'error' ? 'تعذّر النسخ' : 'نسخ الوثيقة';
   return (
     <button
@@ -702,25 +702,272 @@ function CopyButton({ onCopy, state }) {
           </>
         )}
       </svg>
-      <span>{label}</span>
+      <span className={compact ? 'sr-only sm:not-sr-only' : ''}>{label}</span>
     </button>
   );
 }
 
-function Toast({ state }) {
-  const visible = state === 'copied' || state === 'error';
+function Toast({ toast }) {
   return (
     <div
       role="status"
       aria-live="polite"
       className={`pointer-events-none fixed inset-x-4 bottom-6 z-50 mx-auto flex max-w-sm items-center justify-center gap-3 rounded-2xl px-5 py-4 text-sm font-semibold shadow-2xl ring-1 transition-all duration-300 sm:inset-x-auto sm:left-1/2 sm:w-full sm:-translate-x-1/2 ${
-        visible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
-      } ${state === 'error' ? 'bg-red-600 text-white ring-red-400' : 'bg-emerald-600 text-white ring-emerald-400'}`}
+        toast.visible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
+      } ${toast.tone === 'error' ? 'bg-red-600 text-white ring-red-400' : 'bg-emerald-600 text-white ring-emerald-400'}`}
     >
-      {state === 'error' ? (
-        <span>تعذّر النسخ — يرجى المحاولة مرة أخرى</span>
-      ) : (
-        <span>✓ نُسخت الوثيقة كاملةً إلى الحافظة</span>
+      <span>{toast.message}</span>
+    </div>
+  );
+}
+
+function ReadingProgress() {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      setProgress(max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0);
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, []);
+
+  const percent = Math.round(progress * 100);
+  return (
+    <div
+      role="progressbar"
+      aria-label="تقدم القراءة"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={percent}
+      className="fixed inset-x-0 top-0 z-[60] h-1 bg-emerald-500/15"
+    >
+      {/* يمتلئ من اليمين إلى اليسار بما يتوافق مع اتجاه القراءة العربية */}
+      <div
+        className="h-full origin-right bg-gradient-to-l from-emerald-400 to-emerald-600 shadow-[0_0_8px_rgba(16,185,129,0.7)] transition-transform duration-150 ease-out"
+        style={{ transform: `scaleX(${progress})` }}
+      />
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  المشاركة                                                           */
+/* ------------------------------------------------------------------ */
+
+const SHARE_TEXT = `${DOCUMENT_META.title} — ${DOCUMENT_META.motto}`;
+
+function currentPageUrl() {
+  return `${window.location.origin}${window.location.pathname}`;
+}
+
+function WhatsAppIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
+    </svg>
+  );
+}
+
+function XIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
+      <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
+    </svg>
+  );
+}
+
+function LinkIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" {...props}>
+      <path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5" />
+      <path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5" />
+    </svg>
+  );
+}
+
+function ShareIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" {...props}>
+      <circle cx="18" cy="5" r="3" />
+      <circle cx="6" cy="12" r="3" />
+      <circle cx="18" cy="19" r="3" />
+      <path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4" />
+    </svg>
+  );
+}
+
+function useShareActions(notify) {
+  const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+
+  const copyLink = useCallback(async () => {
+    try {
+      await copyToClipboard(currentPageUrl());
+      notify('✓ نُسخ رابط الوثيقة');
+    } catch {
+      notify('تعذّر نسخ الرابط', 'error');
+    }
+  }, [notify]);
+
+  const nativeShare = useCallback(async () => {
+    try {
+      await navigator.share({ title: DOCUMENT_META.title, text: SHARE_TEXT, url: currentPageUrl() });
+    } catch {
+      /* ألغى المستخدم المشاركة */
+    }
+  }, []);
+
+  const links = () => {
+    const url = currentPageUrl();
+    return {
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(`${SHARE_TEXT}\n${url}`)}`,
+      x: `https://twitter.com/intent/tweet?text=${encodeURIComponent(SHARE_TEXT)}&url=${encodeURIComponent(url)}`,
+    };
+  };
+
+  return { canNativeShare, copyLink, nativeShare, links };
+}
+
+const SHARE_BTN =
+  'inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 active:scale-95';
+
+function ShareButtons({ notify, label = 'شارك الوثيقة', className = '' }) {
+  const { canNativeShare, copyLink, nativeShare, links } = useShareActions(notify);
+  const { whatsapp, x } = links();
+  return (
+    <div className={`flex flex-col items-center gap-3 ${className}`}>
+      <p className="text-xs font-bold tracking-widest text-slate-500 dark:text-slate-400">{label}</p>
+      <div className="flex flex-wrap justify-center gap-2">
+        <a
+          href={whatsapp}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`${SHARE_BTN} bg-[#25D366] text-white hover:bg-[#1ebe5a]`}
+        >
+          <WhatsAppIcon className="h-4 w-4" />
+          واتساب
+        </a>
+        <a
+          href={x}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`${SHARE_BTN} bg-black text-white hover:bg-slate-800 dark:bg-white dark:text-black dark:hover:bg-slate-200`}
+        >
+          <XIcon className="h-3.5 w-3.5" />
+          إكس
+        </a>
+        <button
+          type="button"
+          onClick={copyLink}
+          className={`${SHARE_BTN} border border-slate-300 bg-white text-slate-800 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800`}
+        >
+          <LinkIcon className="h-4 w-4" />
+          نسخ الرابط
+        </button>
+        {canNativeShare && (
+          <button
+            type="button"
+            onClick={nativeShare}
+            className={`${SHARE_BTN} border border-slate-300 bg-white text-slate-800 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800`}
+          >
+            <ShareIcon className="h-4 w-4" />
+            المزيد
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const MENU_ITEM =
+  'flex w-full items-center gap-3 px-4 py-2.5 text-right text-sm font-semibold text-slate-800 transition hover:bg-slate-100 focus:bg-slate-100 focus:outline-none dark:text-slate-100 dark:hover:bg-slate-800 dark:focus:bg-slate-800';
+
+function ShareMenu({ notify }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
+  const { canNativeShare, copyLink, nativeShare, links } = useShareActions(notify);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onPointer = (e) => {
+      if (!rootRef.current?.contains(e.target)) setOpen(false);
+    };
+    const onKey = (e) => e.key === 'Escape' && setOpen(false);
+    document.addEventListener('pointerdown', onPointer);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onPointer);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  const close = () => setOpen(false);
+  const { whatsapp, x } = open ? links() : {};
+
+  return (
+    <div ref={rootRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-label="مشاركة الوثيقة"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 bg-white/80 text-slate-700 shadow-sm backdrop-blur transition hover:scale-105 hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 dark:border-slate-700 dark:bg-slate-900/80 dark:text-emerald-300 dark:hover:bg-slate-800"
+      >
+        <ShareIcon className="h-4 w-4" />
+      </button>
+      {open && (
+        <div
+          role="menu"
+          className="absolute left-0 top-12 z-50 w-52 overflow-hidden rounded-2xl border border-slate-200 bg-white py-1 shadow-2xl dark:border-slate-700 dark:bg-slate-900"
+        >
+          <a role="menuitem" href={whatsapp} target="_blank" rel="noopener noreferrer" onClick={close} className={MENU_ITEM}>
+            <WhatsAppIcon className="h-4 w-4 text-[#25D366]" />
+            واتساب
+          </a>
+          <a role="menuitem" href={x} target="_blank" rel="noopener noreferrer" onClick={close} className={MENU_ITEM}>
+            <XIcon className="h-3.5 w-3.5" />
+            إكس (تويتر)
+          </a>
+          <button
+            role="menuitem"
+            type="button"
+            onClick={() => {
+              close();
+              copyLink();
+            }}
+            className={MENU_ITEM}
+          >
+            <LinkIcon className="h-4 w-4 text-sky-500" />
+            نسخ الرابط
+          </button>
+          {canNativeShare && (
+            <button
+              role="menuitem"
+              type="button"
+              onClick={() => {
+                close();
+                nativeShare();
+              }}
+              className={MENU_ITEM}
+            >
+              <ShareIcon className="h-4 w-4 text-emerald-500" />
+              خيارات أخرى…
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
@@ -1248,7 +1495,7 @@ const CRESCENDO_TONES = {
   hope: 'text-xl font-bold text-emerald-700 dark:text-emerald-300 sm:text-3xl',
 };
 
-function Finale() {
+function Finale({ notify }) {
   const { call } = FINALE;
   return (
     <section
@@ -1311,6 +1558,7 @@ function Finale() {
             {FINALE.signature}
           </p>
           <PlanetLogo className="mx-auto mt-10 h-16 w-16 opacity-80" />
+          <ShareButtons notify={notify} label="انشر الوثيقة… ووقّع على مستقبل الحياة" className="mt-12" />
         </div>
       </div>
     </section>
@@ -1334,7 +1582,9 @@ function readStoredTheme() {
 export default function PlanetarySurvivalDocument() {
   const [isDark, setIsDark] = useState(() => readStoredTheme() !== 'light');
   const [copyState, setCopyState] = useState('idle'); // idle | copied | error
+  const [toast, setToast] = useState({ message: '', tone: 'success', visible: false });
   const resetTimer = useRef(null);
+  const toastTimer = useRef(null);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDark);
@@ -1345,18 +1595,32 @@ export default function PlanetarySurvivalDocument() {
     }
   }, [isDark]);
 
-  useEffect(() => () => clearTimeout(resetTimer.current), []);
+  useEffect(
+    () => () => {
+      clearTimeout(resetTimer.current);
+      clearTimeout(toastTimer.current);
+    },
+    []
+  );
+
+  const notify = useCallback((message, tone = 'success') => {
+    clearTimeout(toastTimer.current);
+    setToast({ message, tone, visible: true });
+    toastTimer.current = setTimeout(() => setToast((t) => ({ ...t, visible: false })), 2500);
+  }, []);
 
   const handleCopy = useCallback(async () => {
     clearTimeout(resetTimer.current);
     try {
       await copyToClipboard(buildPlainText());
       setCopyState('copied');
+      notify('✓ نُسخت الوثيقة كاملةً إلى الحافظة');
     } catch {
       setCopyState('error');
+      notify('تعذّر النسخ — يرجى المحاولة مرة أخرى', 'error');
     }
     resetTimer.current = setTimeout(() => setCopyState('idle'), 2500);
-  }, []);
+  }, [notify]);
 
   return (
     <div
@@ -1364,6 +1628,8 @@ export default function PlanetarySurvivalDocument() {
       lang="ar"
       className="min-h-screen bg-white font-arabic text-slate-800 antialiased transition-colors duration-300 dark:bg-slate-950 dark:text-slate-200"
     >
+      <ReadingProgress />
+
       {/* شريط علوي ثابت */}
       <div className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/80 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-950/80">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
@@ -1374,7 +1640,8 @@ export default function PlanetarySurvivalDocument() {
             </span>
           </a>
           <div className="flex shrink-0 items-center gap-2">
-            <CopyButton onCopy={handleCopy} state={copyState} />
+            <CopyButton onCopy={handleCopy} state={copyState} compact />
+            <ShareMenu notify={notify} />
             <ThemeToggle isDark={isDark} onToggle={() => setIsDark((d) => !d)} />
           </div>
         </div>
@@ -1428,6 +1695,7 @@ export default function PlanetarySurvivalDocument() {
             </a>
             <CopyButton onCopy={handleCopy} state={copyState} />
           </div>
+          <ShareButtons notify={notify} className="mt-8" />
         </div>
       </header>
 
@@ -1439,13 +1707,13 @@ export default function PlanetarySurvivalDocument() {
       </main>
 
       {/* الفصل 11 — السطر الأخير */}
-      <Finale />
+      <Finale notify={notify} />
 
       <footer className="border-t border-slate-200 bg-white py-8 text-center text-xs text-slate-500 dark:border-slate-800 dark:bg-black dark:text-slate-500">
         {DOCUMENT_META.title} · {DOCUMENT_META.motto}
       </footer>
 
-      <Toast state={copyState} />
+      <Toast toast={toast} />
     </div>
   );
 }
