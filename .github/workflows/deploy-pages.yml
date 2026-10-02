@@ -25,6 +25,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run pdf
       - uses: actions/configure-pages@v5
         with:
           # يفعّل GitHub Pages تلقائياً (المصدر: GitHub Actions) إن لم تكن مفعّلة

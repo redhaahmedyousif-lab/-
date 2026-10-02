@@ -567,8 +567,9 @@ const SUMMARY = {
 };
 
 const NAV_ITEMS = [
-  ...CHAPTERS.map((c) => ({ href: `#chapter-${c.id}`, num: c.id, title: c.title })),
+  // الخلاصة أولاً: تظهر في أول الفهرس على شاشة الهاتف دون تمرير جانبي
   { href: '#summary', num: '◆', title: SUMMARY.title, tone: 'summary' },
+  ...CHAPTERS.map((c) => ({ href: `#chapter-${c.id}`, num: c.id, title: c.title })),
   { href: `#chapter-${FINALE.id}`, num: FINALE.id, title: FINALE.title, tone: 'finale' },
   { href: '#credits', num: '©', title: CREDITS.title, tone: 'credits' },
 ];
@@ -895,6 +896,35 @@ function ReadingProgress() {
 
 const SHARE_TEXT = `${DOCUMENT_META.title} — ${DOCUMENT_META.motto}`;
 
+// يُولَّد هذا الملف تلقائياً عند كل نشر (scripts/generate-pdf.mjs)، فيعمل التحميل حتى في
+// متصفحات الهاتف والمتصفحات المدمجة في التطبيقات التي لا تدعم الطباعة
+const PDF_FILE = 'planetary-survival-document.pdf';
+
+function printDocument(notify) {
+  if (typeof window.print === 'function') {
+    window.print();
+  } else {
+    notify('الطباعة غير مدعومة هنا — استخدم «تحميل PDF»', 'error');
+  }
+}
+
+function PdfIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+      <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
+    </svg>
+  );
+}
+
+function PrintIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true" {...props}>
+      <path d="M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6a1 1 0 0 1-1 1h-2" />
+      <path d="M6 14h12v7H6z" />
+    </svg>
+  );
+}
+
 function currentPageUrl() {
   return `${window.location.origin}${window.location.pathname}`;
 }
@@ -1013,6 +1043,24 @@ function ShareButtons({ notify, label = 'شارك الوثيقة', className = '
           </button>
         )}
       </div>
+      <div className="flex flex-wrap justify-center gap-2">
+        <a
+          href={PDF_FILE}
+          download
+          className={`${SHARE_BTN} bg-red-600 text-white hover:bg-red-500`}
+        >
+          <PdfIcon className="h-4 w-4" />
+          تحميل PDF
+        </a>
+        <button
+          type="button"
+          onClick={() => printDocument(notify)}
+          className={`${SHARE_BTN} border border-slate-300 bg-white text-slate-800 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800`}
+        >
+          <PrintIcon className="h-4 w-4" />
+          طباعة
+        </button>
+      </div>
     </div>
   );
 }
@@ -1093,6 +1141,23 @@ function ShareMenu({ notify }) {
               خيارات أخرى…
             </button>
           )}
+          <div className="my-1 border-t border-slate-200 dark:border-slate-700" />
+          <a role="menuitem" href={PDF_FILE} download onClick={close} className={MENU_ITEM}>
+            <PdfIcon className="h-4 w-4 text-red-500" />
+            تحميل PDF
+          </a>
+          <button
+            role="menuitem"
+            type="button"
+            onClick={() => {
+              close();
+              printDocument(notify);
+            }}
+            className={MENU_ITEM}
+          >
+            <PrintIcon className="h-4 w-4 text-slate-500" />
+            طباعة
+          </button>
         </div>
       )}
     </div>
@@ -1925,11 +1990,14 @@ export default function PlanetarySurvivalDocument() {
     const onChange = (e) => (e.matches ? toLight() : restore());
     window.addEventListener('beforeprint', toLight);
     window.addEventListener('afterprint', restore);
-    printQuery.addEventListener('change', onChange);
+    // Safari الأقدم من 14 لا يدعم addEventListener على MediaQueryList
+    if (printQuery.addEventListener) printQuery.addEventListener('change', onChange);
+    else printQuery.addListener(onChange);
     return () => {
       window.removeEventListener('beforeprint', toLight);
       window.removeEventListener('afterprint', restore);
-      printQuery.removeEventListener('change', onChange);
+      if (printQuery.removeEventListener) printQuery.removeEventListener('change', onChange);
+      else printQuery.removeListener(onChange);
     };
   }, [isDark]);
 
@@ -2026,6 +2094,12 @@ export default function PlanetarySurvivalDocument() {
               className="rounded-full bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
             >
               ابدأ القراءة ↓
+            </a>
+            <a
+              href="#summary"
+              className="rounded-full border-2 border-emerald-600 px-6 py-3 text-sm font-bold text-emerald-700 transition hover:bg-emerald-50 dark:border-emerald-400 dark:text-emerald-300 dark:hover:bg-emerald-950"
+            >
+              ◆ الخلاصة في دقيقة
             </a>
             <CopyButton onCopy={handleCopy} state={copyState} />
           </div>
