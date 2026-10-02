@@ -26,8 +26,9 @@ body {
   }
 
   @bottom-center {
-    content: counter(page) ' / ' counter(pages);
-    font-family: 'JetBrains Mono', monospace;
+    /* صيغة عربية تُقرأ صحيحة من اليمين؛ «2 / 16» كانت تُعرض معكوسة «16 / 2» */
+    content: 'صفحة ' counter(page) ' من ' counter(pages);
+    font-family: 'Noto Kufi Arabic', Tahoma, sans-serif;
     font-size: 8pt;
     color: #64748b;
   }
@@ -128,5 +129,48 @@ body {
     text-shadow: none !important;
     transition: none !important;
     animation: none !important;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  البحث السريع والعرض التقديمي                                        */
+/* ------------------------------------------------------------------ */
+
+::highlight(psd-search) {
+  background-color: rgb(250 204 21 / 0.45);
+  color: inherit;
+}
+
+::highlight(psd-search-current) {
+  background-color: rgb(249 115 22);
+  color: #fff;
+}
+
+@keyframes psd-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.psd-slide-in {
+  animation: psd-slide-in 0.35s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .psd-slide-in {
+    animation: none;
+  }
+}
+
+@media print {
+  ::highlight(psd-search),
+  ::highlight(psd-search-current) {
+    background-color: transparent;
+    color: inherit;
   }
 }

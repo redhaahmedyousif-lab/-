@@ -588,117 +588,169 @@ const NAV_TONES = {
 
 const SUBSCRIPT_DIGITS = { 0: '₀', 1: '₁', 2: '₂', 3: '₃', 4: '₄', 5: '₅', 6: '₆', 7: '₇', 8: '₈', 9: '₉' };
 
-// يحوّل علامات التنسيق إلى نص عادي: **غامق** ← غامق، و PM_{2.5} ← PM₂.₅
-const stripMarks = (text) =>
-  text
-    .replace(/\*\*(.+?)\*\*/g, '$1')
-    .replace(/_\{(.+?)\}/g, (_, sub) => sub.replace(/\d/g, (d) => SUBSCRIPT_DIGITS[d]));
+// PM_{2.5} ← PM₂.₅
+const toSubscripts = (text) =>
+  text.replace(/_\{(.+?)\}/g, (_, sub) => sub.replace(/\d/g, (d) => SUBSCRIPT_DIGITS[d]));
 
-function blockToText(block) {
+// يحوّل علامات التنسيق إلى نص عادي: **غامق** ← غامق، و PM_{2.5} ← PM₂.₅
+const stripMarks = (text) => toSubscripts(text).replace(/\*\*(.+?)\*\*/g, '$1');
+
+// يحوّل كتلة محتوى إلى نص؛ md=true ينتج Markdown (عناوين، اقتباسات، جداول)
+function blockToText(block, md = false) {
+  const fmt = md ? toSubscripts : stripMarks; // Markdown يحتفظ بالغامق **…**
+  const bold = (t) => (md ? `**${t}**` : t);
   switch (block.type) {
     case 'drum':
-      return `«${block.lines.map((l) => `${block.word} ${l}`).join(' ')}»`;
+      return md
+        ? block.lines.map((l) => `**${block.word}** ${l}`).join('  \n')
+        : `«${block.lines.map((l) => `${block.word} ${l}`).join(' ')}»`;
     case 'p':
-      return stripMarks(block.text);
+      return fmt(block.text);
     case 'stat':
       return null; // الرقم مذكور في الفقرة التالية
     case 'hammer':
+      return md ? `> ⚡ **«${block.text}»**` : `«${block.text}»`;
     case 'principle':
-      return `«${block.text}»`;
+      return md ? `> **«${block.text}»**` : `«${block.text}»`;
     case 'label':
-      return `${block.text}:`;
+      return bold(`${block.text}:`);
     case 'heading':
-      return `■ ${block.text}`;
+      return md ? `### ${block.text}` : `■ ${block.text}`;
     case 'bullets':
       return block.items
         .map((item) => {
-          const head = `• ${item.label}${item.text ? `: ${stripMarks(item.text)}` : ':'}`;
+          const head = md
+            ? `- **${item.label}:** ${fmt(item.text)}`.trimEnd()
+            : `• ${item.label}${item.text ? `: ${fmt(item.text)}` : ':'}`;
           const sub = (item.sub || []).map((s, i) => `   ${i + 1}. ${s}`);
           return [head, ...sub].join('\n');
         })
         .join('\n');
     case 'ordered':
-      return block.items.map((item, i) => `${i + 1}. ${item.label}: ${item.text}`).join('\n');
+      return block.items.map((item, i) => `${i + 1}. ${bold(`${item.label}:`)} ${item.text}`).join('\n');
     case 'limits':
-      return block.items.map((item) => `✕ ${item}`).join('\n');
+      return block.items.map((item) => `${md ? '- ' : ''}✕ ${item}`).join('\n');
     case 'architecture':
-      return ARCHITECTURE.ascii;
+      return md ? `\`\`\`text\n${ARCHITECTURE.ascii}\n\`\`\`` : ARCHITECTURE.ascii;
     case 'axes':
       return null; // المحاور مذكورة في الفقرة السابقة
     case 'tier':
-      return [
-        `◆ المستوى ${block.level}: ${block.title} (${block.en})`,
-        ...block.pillars.map((p) =>
-          [
-            `  ${p.num}. ${p.title} (${p.en})`,
-            ...PILLAR_FIELDS.map(([key, label]) => `   - ${label}: ${stripMarks(p[key])}`),
+      return md
+        ? [
+            `### المستوى ${block.level}: ${block.title} (${block.en})`,
+            ...block.pillars.map((p) =>
+              [
+                `\n#### ${p.num}. ${p.title} (${p.en})\n`,
+                ...PILLAR_FIELDS.map(([key, label]) => `- **${label}:** ${toSubscripts(p[key])}`),
+              ].join('\n')
+            ),
           ].join('\n')
-        ),
-      ].join('\n');
+        : [
+            `◆ المستوى ${block.level}: ${block.title} (${block.en})`,
+            ...block.pillars.map((p) =>
+              [
+                `  ${p.num}. ${p.title} (${p.en})`,
+                ...PILLAR_FIELDS.map(([key, label]) => `   - ${label}: ${stripMarks(p[key])}`),
+              ].join('\n')
+            ),
+          ].join('\n');
     case 'flow':
-      return block.steps.map((s) => `${s.en} (${s.ar})`).join(' ← ');
+      return block.steps.map((s) => bold(`${s.en} (${s.ar})`)).join(' ← ');
     case 'timeline':
       return [
-        block.ascii,
+        md ? `\`\`\`text\n${block.ascii}\n\`\`\`\n` : block.ascii,
         ...block.phases.flatMap((ph) => [
-          `• ${ph.name} (${ph.years}) — ${ph.en} (${ph.ar}): ${ph.text}`,
-          ...(ph.gate ? [`   ⟐ ${ph.gate.name}: ${ph.gate.text}`] : []),
+          `${md ? '-' : '•'} ${bold(`${ph.name} (${ph.years}) — ${ph.en} (${ph.ar}):`)} ${ph.text}`,
+          ...(ph.gate ? [`   ${md ? '- ' : ''}⟐ ${bold(`${ph.gate.name}:`)} ${ph.gate.text}`] : []),
         ]),
       ].join('\n');
-    case 'dashboard':
-      return [
-        DASHBOARD_COLUMNS.map(([, label]) => label).join(' | '),
-        ...DASHBOARD.map((row) => DASHBOARD_COLUMNS.map(([key]) => stripMarks(row[key])).join(' | ')),
-      ].join('\n');
+    case 'dashboard': {
+      const cells = (values) => values.map((v) => v.replace(/\|/g, '\\|'));
+      const header = DASHBOARD_COLUMNS.map(([, label]) => label);
+      const rows = DASHBOARD.map((row) => DASHBOARD_COLUMNS.map(([key]) => toSubscripts(row[key])));
+      return md
+        ? [header, header.map(() => '---'), ...rows].map((r) => `| ${cells(r).join(' | ')} |`).join('\n')
+        : [header, ...rows].map((r) => r.join(' | ')).join('\n');
+    }
     default:
       return null;
   }
 }
 
-function buildPlainText() {
-  const divider = '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━';
-  const out = [DOCUMENT_META.title, DOCUMENT_META.motto, divider];
+// نص الوثيقة كاملاً: format = 'txt' (للنسخ وملف النص) أو 'md' (ملف Markdown)
+function buildDocumentText(format = 'txt') {
+  const md = format === 'md';
+  const divider = md ? '---' : '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━';
+  const h = (level, text) => (md ? `${'#'.repeat(level)} ${text}` : text);
+  const out = md
+    ? [h(1, DOCUMENT_META.title), '', `**${DOCUMENT_META.motto}**`, '', divider]
+    : [DOCUMENT_META.title, DOCUMENT_META.motto, divider];
 
   CHAPTERS.forEach((chapter) => {
-    out.push('', `${chapter.id} — ${chapter.title}${chapter.en ? ` (${chapter.en})` : ''}`);
-    if (chapter.algorithm) out.push(`خوارزمية البقاء: ${chapter.algorithm}`);
+    out.push('', h(2, `${chapter.id} — ${chapter.title}${chapter.en ? ` (${chapter.en})` : ''}`));
+    if (chapter.algorithm) out.push(md ? `\n*خوارزمية البقاء: ${chapter.algorithm}*` : `خوارزمية البقاء: ${chapter.algorithm}`);
     chapter.blocks.forEach((block) => {
-      const text = blockToText(block);
+      const text = blockToText(block, md);
       if (text) out.push('', text);
     });
     out.push('', divider);
   });
 
-  out.push('', `${SUMMARY.title} (${SUMMARY.en})`, '', SUMMARY.lead, '');
-  out.push(SUMMARY.stats.map((st) => `${st.value} ${st.label}`).join(' | '));
+  out.push('', h(2, `${SUMMARY.title} (${SUMMARY.en})`), '', SUMMARY.lead, '');
+  out.push(
+    md
+      ? SUMMARY.stats.map((st) => `- **${st.value}** ${st.label}`).join('\n')
+      : SUMMARY.stats.map((st) => `${st.value} ${st.label}`).join(' | ')
+  );
   SUMMARY.pillars.forEach((pillar) => {
-    out.push('', `◆ ${pillar.title} (الفصول ${pillar.chapters})`, ...pillar.points.map((pt) => `• ${pt}`));
+    out.push(
+      '',
+      md ? h(3, `${pillar.title} (الفصول ${pillar.chapters})`) : `◆ ${pillar.title} (الفصول ${pillar.chapters})`,
+      ...(md ? [''] : []),
+      ...pillar.points.map((pt) => `${md ? '-' : '•'} ${pt}`)
+    );
   });
   out.push('', divider);
 
   const { call } = FINALE;
   out.push(
     '',
-    `${FINALE.id} — ${FINALE.title}`,
+    h(2, `${FINALE.id} — ${FINALE.title}`),
     '',
-    `${call.opening} ${call.addressees.join('، ')}، ${call.tail} ${call.oath}`,
-    ...FINALE.crescendo.flatMap((line) => ['', line.text]),
+    `${call.opening} ${call.addressees.join('، ')}، ${call.tail} ${md ? `**${call.oath}**` : call.oath}`,
+    ...FINALE.crescendo.flatMap((line) => ['', md && line.tone === 'strong' ? `**${line.text}**` : line.text]),
     '',
-    FINALE.finalLine,
+    md ? `> **${FINALE.finalLine}**` : FINALE.finalLine,
     '',
-    FINALE.signature,
+    md ? `*${FINALE.signature}*` : FINALE.signature,
     '',
     divider,
     '',
-    CREDITS.title,
+    h(2, CREDITS.title),
     '',
-    ...CREDITS.people.map((p) => `${p.role}: ${p.name}${p.detail ? ` (${p.detail})` : ''}`),
+    ...CREDITS.people.map(
+      (p) => `${md ? '- **' : ''}${p.role}:${md ? '**' : ''} ${p.name}${p.detail ? ` (${p.detail})` : ''}`
+    ),
     '',
-    CREDITS.copyright,
-    `«${CREDITS.statement}»`
+    CREDITS.copyright.replace(/ /g, ' '),
+    '',
+    md ? `> «${CREDITS.statement}»` : `«${CREDITS.statement}»`
   );
 
-  return out.join('\n');
+  return `${out.join('\n')}\n`;
+}
+
+function downloadTextFile(filename, content, mime) {
+  // BOM لملف النص حتى تعرضه برامج ويندوز القديمة بترميز UTF-8 الصحيح
+  const blob = new Blob([mime === 'text/plain' ? `﻿${content}` : content], { type: `${mime};charset=utf-8` });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 async function copyToClipboard(text) {
@@ -1158,6 +1210,21 @@ function ShareMenu({ notify }) {
             <PrintIcon className="h-4 w-4 text-slate-500" />
             طباعة
           </button>
+          {Object.entries(EXPORTS).map(([format, { label }]) => (
+            <button
+              key={format}
+              role="menuitem"
+              type="button"
+              onClick={() => {
+                close();
+                exportDocument(format, notify);
+              }}
+              className={MENU_ITEM}
+            >
+              <FileIcon className="h-4 w-4 text-slate-500" />
+              تحميل {label}
+            </button>
+          ))}
         </div>
       )}
     </div>
@@ -1955,6 +2022,592 @@ function Finale({ notify }) {
 /*  المكون الرئيسي                                                     */
 /* ------------------------------------------------------------------ */
 
+/* ------------------------------------------------------------------ */
+/*  التصدير إلى ملف                                                     */
+/* ------------------------------------------------------------------ */
+
+const EXPORTS = {
+  md: { label: 'Markdown', file: 'planetary-survival-document.md', mime: 'text/markdown' },
+  txt: { label: 'نص TXT', file: 'planetary-survival-document.txt', mime: 'text/plain' },
+};
+
+function exportDocument(format, notify) {
+  const { file, mime, label } = EXPORTS[format];
+  try {
+    downloadTextFile(file, buildDocumentText(format), mime);
+    notify(`✓ حُمّلت الوثيقة كملف ${label}`);
+  } catch {
+    notify('تعذّر تحميل الملف', 'error');
+  }
+}
+
+function FileIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true" {...props}>
+      <path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z" />
+      <path d="M14 3v5h5M9 13h6M9 17h6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ExportButtons({ notify }) {
+  return (
+    <>
+      {Object.entries(EXPORTS).map(([format, { label }]) => (
+        <button
+          key={format}
+          type="button"
+          onClick={() => exportDocument(format, notify)}
+          className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white/80 px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-white active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-100 dark:hover:bg-slate-800 sm:px-5"
+        >
+          <FileIcon className="h-4 w-4" />
+          تحميل {label}
+        </button>
+      ))}
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  أدوات الشريط العلوي: طباعة، عرض تقديمي، بحث                         */
+/* ------------------------------------------------------------------ */
+
+const TOOL_BTN =
+  'inline-flex h-10 items-center justify-center gap-2 rounded-full border border-slate-300 bg-white/80 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-800';
+
+function SearchIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" {...props}>
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.5-3.5" />
+    </svg>
+  );
+}
+
+function SlidesIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true" {...props}>
+      <rect x="3" y="4" width="18" height="12" rx="2" />
+      <path d="M12 16v4M8 20h8" strokeLinecap="round" />
+      <path d="m10 8 4 2-4 2z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function PrintButton({ notify }) {
+  return (
+    <button
+      type="button"
+      onClick={() => printDocument(notify)}
+      className={`${TOOL_BTN} w-10 sm:w-auto sm:px-4`}
+      title="طباعة / حفظ PDF"
+    >
+      <PrintIcon className="h-4 w-4 shrink-0" />
+      <span className="sr-only sm:not-sr-only">طباعة / حفظ PDF</span>
+    </button>
+  );
+}
+
+/* ---------------------------- العرض التقديمي ---------------------------- */
+
+// أبرز جملة في الفصل: أول مطرقة أو مبدأ، وإلا سطور «قفوا…»
+function chapterHighlight(chapter) {
+  const quote = chapter.blocks.find((b) => b.type === 'hammer' || b.type === 'principle');
+  if (quote) return quote.text;
+  const drum = chapter.blocks.find((b) => b.type === 'drum');
+  return drum ? drum.lines.map((l) => `${drum.word} ${l}`).join(' ') : null;
+}
+
+// نقاط موجزة من كتل الفصل (بحد أقصى 5)
+function chapterPoints(chapter) {
+  const points = chapter.blocks.flatMap((b) => {
+    switch (b.type) {
+      case 'bullets':
+      case 'ordered':
+        return b.items.map((item) => item.label);
+      case 'label':
+      case 'heading':
+        return [b.text];
+      case 'tier':
+        return [`المستوى ${b.level}: ${b.title}`];
+      case 'flow':
+        return [b.steps.map((st) => st.ar).join(' ← ')];
+      case 'timeline':
+        return b.phases.map((ph) => `${ph.years} — ${ph.en} (${ph.ar})`);
+      case 'dashboard':
+        return DASHBOARD.map((row) => row.sector);
+      case 'architecture':
+        return [ARCHITECTURE.neural.title, ARCHITECTURE.pipeline.join(' ← ')];
+      case 'limits':
+        return b.items;
+      default:
+        return [];
+    }
+  });
+  return points.slice(0, 5);
+}
+
+const SLIDES = [
+  { kind: 'cover' },
+  ...CHAPTERS.map((chapter) => ({
+    kind: 'chapter',
+    chapter,
+    highlight: chapterHighlight(chapter),
+    points: chapterPoints(chapter),
+    stat: chapter.blocks.find((b) => b.type === 'stat'),
+  })),
+  { kind: 'summary-stats' },
+  { kind: 'summary-pillars' },
+  { kind: 'call' },
+  { kind: 'final' },
+  { kind: 'credits' },
+];
+
+function SlideContent({ slide }) {
+  switch (slide.kind) {
+    case 'cover':
+      return (
+        <div className="text-center">
+          <PlanetLogo className="mx-auto h-28 w-28 sm:h-40 sm:w-40" />
+          <h2 className="mt-8 text-4xl font-black text-emerald-300 sm:text-7xl">{DOCUMENT_META.title}</h2>
+          <p className="mt-6 text-xl font-bold text-slate-200 sm:text-3xl">{DOCUMENT_META.motto}</p>
+          <p className="mt-10 text-sm text-slate-400 sm:text-lg">
+            {CREDITS.people[0].name} · {CREDITS.people[2].name} · MYP A
+          </p>
+        </div>
+      );
+    case 'chapter': {
+      const { chapter, highlight, points, stat } = slide;
+      return (
+        <div className="w-full max-w-4xl">
+          <div className="flex items-end gap-4 sm:gap-6">
+            <span className="font-mono text-6xl font-black leading-none text-sky-400 sm:text-8xl">{chapter.id}</span>
+            <div>
+              <h2 className="text-3xl font-black text-white sm:text-5xl">{chapter.title}</h2>
+              {chapter.en && (
+                <p dir="ltr" className="mt-1 text-end font-mono text-sm text-slate-400">
+                  {chapter.en}
+                </p>
+              )}
+            </div>
+          </div>
+          {chapter.algorithm && (
+            <p className="mt-6 inline-block rounded-lg bg-emerald-500/15 px-4 py-2 text-lg font-bold text-emerald-300 sm:text-2xl">
+              ›_ {chapter.algorithm}
+            </p>
+          )}
+          {stat && (
+            <p dir="ltr" className="mt-6 text-end font-mono text-5xl font-black text-red-400 sm:text-7xl">
+              +{stat.value}
+            </p>
+          )}
+          {highlight && (
+            <blockquote className="mt-8 border-r-4 border-amber-400 pr-5 text-xl font-extrabold leading-relaxed text-amber-50 sm:text-3xl">
+              «<Inline text={highlight} />»
+            </blockquote>
+          )}
+          {points.length > 0 && (
+            <ul className="mt-8 grid gap-3 sm:grid-cols-2">
+              {points.map((pt) => (
+                <li key={pt} className="flex gap-3 rounded-xl bg-white/5 px-4 py-3 text-base text-slate-200 sm:text-lg">
+                  <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-sky-400" aria-hidden="true" />
+                  <span>
+                    <Inline text={pt} />
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      );
+    }
+    case 'summary-stats':
+      return (
+        <div className="w-full max-w-5xl text-center">
+          <p className="text-sm font-bold tracking-[0.35em] text-emerald-400">◆ {SUMMARY.en}</p>
+          <h2 className="mt-3 text-4xl font-black text-white sm:text-6xl">{SUMMARY.title}</h2>
+          <p className="mx-auto mt-6 max-w-3xl text-lg leading-loose text-slate-300 sm:text-xl">{SUMMARY.lead}</p>
+          <div className="mt-10 grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {SUMMARY.stats.map((st) => (
+              <div key={st.label} className="rounded-2xl bg-white/5 p-5">
+                <p dir="ltr" className="font-mono text-4xl font-black text-emerald-400 sm:text-5xl">
+                  {st.value}
+                </p>
+                <p className="mt-2 text-sm text-slate-300 sm:text-base">{st.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    case 'summary-pillars':
+      return (
+        <div className="w-full max-w-5xl">
+          <h2 className="text-center text-3xl font-black text-white sm:text-5xl">ركائز الوثيقة</h2>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {SUMMARY.pillars.map((pillar) => (
+              <div key={pillar.title} className="rounded-2xl bg-white/5 p-5">
+                <p className="text-xl font-extrabold text-emerald-300">
+                  <span aria-hidden="true">{pillar.icon}</span> {pillar.title}
+                </p>
+                <p className="mt-2 text-base leading-relaxed text-slate-300">
+                  <Inline text={pillar.points[0]} />
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    case 'call':
+      return (
+        <div className="w-full max-w-4xl text-center">
+          <p className="text-4xl font-black text-red-400 sm:text-6xl">{FINALE.call.opening}</p>
+          <div className="mt-8 flex flex-wrap justify-center gap-2">
+            {FINALE.call.addressees.map((who) => (
+              <span key={who} className="rounded-full bg-white/10 px-4 py-2 text-base font-bold text-white sm:text-lg">
+                {who}
+              </span>
+            ))}
+          </div>
+          <p className="mt-8 text-xl text-slate-300 sm:text-2xl">{FINALE.call.tail}</p>
+          <p className="mt-6 text-2xl font-black leading-relaxed text-amber-200 sm:text-4xl">{FINALE.call.oath}</p>
+        </div>
+      );
+    case 'final':
+      return (
+        <div className="w-full max-w-4xl text-center">
+          <p className="text-sm font-bold tracking-[0.4em] text-amber-400">{FINALE.title}</p>
+          <p className="mt-8 text-3xl font-black leading-[1.8] text-emerald-300 sm:text-5xl">{FINALE.finalLine}</p>
+          <p className="mt-10 text-lg italic text-slate-300 sm:text-2xl">{FINALE.signature}</p>
+        </div>
+      );
+    case 'credits':
+      return (
+        <div className="w-full max-w-3xl text-center">
+          <h2 className="text-3xl font-black text-white sm:text-5xl">{CREDITS.title}</h2>
+          <dl className="mt-8 space-y-4">
+            {CREDITS.people.map((person) => (
+              <div key={person.role}>
+                <dt className="text-sm font-bold text-emerald-400">{person.role}</dt>
+                <dd className="mt-1 text-xl font-extrabold text-white sm:text-2xl">{person.name}</dd>
+                {person.detail && <dd className="text-sm text-slate-400 sm:text-base">{person.detail}</dd>}
+              </div>
+            ))}
+          </dl>
+          <p className="mt-8 text-sm text-slate-400 sm:text-base">
+            <Inline text={CREDITS.copyright} />
+          </p>
+        </div>
+      );
+    default:
+      return null;
+  }
+}
+
+function Slideshow({ onClose }) {
+  const [index, setIndex] = useState(0);
+  const touchStartX = useRef(null);
+  const closeRef = useRef(null);
+  const last = SLIDES.length - 1;
+
+  const go = useCallback((delta) => setIndex((i) => Math.min(last, Math.max(0, i + delta))), [last]);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    closeRef.current?.focus();
+    // اتجاه عربي: السهم الأيسر للشريحة التالية، والأيمن للسابقة
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose();
+      else if (['ArrowLeft', 'PageDown', ' ', 'Enter'].includes(e.key)) {
+        e.preventDefault();
+        go(1);
+      } else if (['ArrowRight', 'PageUp', 'Backspace'].includes(e.key)) {
+        e.preventDefault();
+        go(-1);
+      } else if (e.key === 'Home') setIndex(0);
+      else if (e.key === 'End') setIndex(last);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', onKey);
+      if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+    };
+  }, [go, last, onClose]);
+
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+    else document.documentElement.requestFullscreen?.().catch(() => {});
+  };
+
+  const onTouchEnd = (e) => {
+    if (touchStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+    // سحب الإصبع نحو اليمين = الشريحة التالية (اتجاه الصفحات العربية)
+    if (Math.abs(dx) > 50) go(dx > 0 ? 1 : -1);
+  };
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="العرض التقديمي للوثيقة"
+      className="fixed inset-0 z-[80] flex flex-col bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950 text-white print:hidden"
+      onTouchStart={(e) => {
+        touchStartX.current = e.touches[0].clientX;
+      }}
+      onTouchEnd={onTouchEnd}
+    >
+      <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6">
+        <p className="truncate text-sm font-bold text-slate-400">{DOCUMENT_META.title}</p>
+        <div className="flex shrink-0 gap-2">
+          {document.documentElement.requestFullscreen && (
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              className="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20"
+            >
+              ملء الشاشة
+            </button>
+          )}
+          <button
+            ref={closeRef}
+            type="button"
+            onClick={onClose}
+            aria-label="إغلاق العرض التقديمي"
+            className="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+          >
+            ✕ إغلاق
+          </button>
+        </div>
+      </div>
+
+      <div className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto px-5 py-6 sm:px-12">
+        <div key={index} className="psd-slide-in flex w-full justify-center">
+          <SlideContent slide={SLIDES[index]} />
+        </div>
+      </div>
+
+      <div className="px-4 pb-4 sm:px-6">
+        <div className="mb-3 h-1 overflow-hidden rounded-full bg-white/10">
+          <div
+            className="h-full origin-right bg-emerald-400 transition-transform duration-300"
+            style={{ transform: `scaleX(${(index + 1) / SLIDES.length})` }}
+          />
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={() => go(-1)}
+            disabled={index === 0}
+            className="rounded-full bg-white/10 px-5 py-2.5 text-sm font-bold hover:bg-white/20 disabled:opacity-30"
+          >
+            → السابقة
+          </button>
+          {/* dir=ltr: المسافات حول «/» تجعل خوارزمية الاتجاه تعكس الرقمين في سياق عربي */}
+          <p dir="ltr" className="font-mono text-sm text-slate-400" aria-live="polite">
+            {index + 1} / {SLIDES.length}
+          </p>
+          <button
+            type="button"
+            onClick={() => go(1)}
+            disabled={index === last}
+            className="rounded-full bg-emerald-500 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-emerald-400 disabled:opacity-30"
+          >
+            التالية ←
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------ البحث السريع ----------------------------- */
+
+// البحث يتجاهل التشكيل والتطويل ويوحّد صور الحروف (أ/إ/آ ← ا، ى ← ي، ة ← ه…)
+const AR_IGNORED = /[ؐ-ًؚ-ٰٟۖ-ۭـ]/;
+const AR_FOLD = { أ: 'ا', إ: 'ا', آ: 'ا', ٱ: 'ا', ى: 'ي', ة: 'ه', ؤ: 'و', ئ: 'ي' };
+
+function normalizeForSearch(text) {
+  let normalized = '';
+  const offsets = []; // موضع كل حرف مُطبَّع في النص الأصلي
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (AR_IGNORED.test(ch)) continue;
+    const lower = ch.toLowerCase();
+    normalized += AR_FOLD[ch] ?? (lower.length === 1 ? lower : ch);
+    offsets.push(i);
+  }
+  return { normalized, offsets };
+}
+
+const SECTION_SELECTOR = 'article[id^="chapter-"], section[id^="chapter-"], #summary, #credits, #top';
+const SECTION_TITLES = Object.fromEntries([
+  ...NAV_ITEMS.map((item) => [item.href.slice(1), item.num === '◆' || item.num === '©' ? item.title : `${item.num} · ${item.title}`]),
+  ['top', 'الترويسة'],
+]);
+const MAX_MATCHES = 300;
+
+function findMatches(root, query) {
+  const needle = normalizeForSearch(query.trim()).normalized;
+  if (needle.length < 2) return [];
+  const matches = [];
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      const el = node.parentElement;
+      if (!el || el.closest('[data-search-skip]')) return NodeFilter.FILTER_REJECT;
+      const visible = el.checkVisibility ? el.checkVisibility() : el.offsetParent !== null;
+      return visible ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+    },
+  });
+  while (walker.nextNode() && matches.length < MAX_MATCHES) {
+    const node = walker.currentNode;
+    const { normalized, offsets } = normalizeForSearch(node.data);
+    let from = 0;
+    let at;
+    while ((at = normalized.indexOf(needle, from)) !== -1 && matches.length < MAX_MATCHES) {
+      const start = offsets[at];
+      const end = offsets[at + needle.length - 1] + 1;
+      const range = document.createRange();
+      range.setStart(node, start);
+      range.setEnd(node, end);
+      const section = node.parentElement.closest(SECTION_SELECTOR);
+      matches.push({
+        range,
+        section: (section && SECTION_TITLES[section.id]) || '',
+        before: node.data.slice(Math.max(0, start - 28), start),
+        text: node.data.slice(start, end),
+        after: node.data.slice(end, end + 28),
+      });
+      from = at + needle.length;
+    }
+  }
+  return matches;
+}
+
+const supportsHighlights = () => typeof CSS !== 'undefined' && 'highlights' in CSS && typeof Highlight !== 'undefined';
+
+function QuickFinder({ rootRef, headerRef, onClose }) {
+  const [query, setQuery] = useState('');
+  const [matches, setMatches] = useState([]);
+  const [current, setCurrent] = useState(-1);
+  const [listOpen, setListOpen] = useState(true);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+    const onKey = (e) => e.key === 'Escape' && onClose();
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      if (supportsHighlights()) {
+        CSS.highlights.delete('psd-search');
+        CSS.highlights.delete('psd-search-current');
+      }
+    };
+  }, [onClose]);
+
+  // يعيد البحث بعد توقف الكتابة لحظة
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const found = rootRef.current ? findMatches(rootRef.current, query) : [];
+      setMatches(found);
+      setCurrent(-1);
+      setListOpen(true);
+      if (supportsHighlights()) {
+        CSS.highlights.set('psd-search', new Highlight(...found.map((m) => m.range)));
+        CSS.highlights.delete('psd-search-current');
+      }
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [query, rootRef]);
+
+  const jumpTo = useCallback(
+    (i) => {
+      const match = matches[i];
+      if (!match) return;
+      setCurrent(i);
+      setListOpen(false); // يُطوى بعد الانتقال حتى لا يغطي النص على الهاتف
+      if (supportsHighlights()) CSS.highlights.set('psd-search-current', new Highlight(match.range));
+      const headerHeight = headerRef.current?.getBoundingClientRect().height ?? 120;
+      const top = match.range.getBoundingClientRect().top + window.scrollY - headerHeight - 32;
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      window.scrollTo({ top, behavior: reduceMotion ? 'auto' : 'smooth' });
+    },
+    [matches, headerRef]
+  );
+
+  const step = (delta) => {
+    if (!matches.length) return;
+    jumpTo((current + delta + matches.length) % matches.length);
+  };
+
+  const hasQuery = normalizeForSearch(query.trim()).normalized.length >= 2;
+
+  return (
+    <div data-search-skip className="mx-auto max-w-5xl px-4 pb-3 sm:px-6" role="search">
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <SearchIcon className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <input
+            ref={inputRef}
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onFocus={() => setListOpen(true)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                step(e.shiftKey ? -1 : 1);
+              }
+            }}
+            placeholder="ابحث في الوثيقة… (مثال: الشعاب، MRV، 2030)"
+            aria-label="البحث في الوثيقة"
+            className="h-10 w-full rounded-full border border-slate-300 bg-white pl-4 pr-9 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+          />
+        </div>
+        <span className="min-w-[3.5rem] text-center font-mono text-xs text-slate-500 dark:text-slate-400" aria-live="polite">
+          {hasQuery ? `${matches.length ? current + 1 : 0}/${matches.length}${matches.length === MAX_MATCHES ? '+' : ''}` : ''}
+        </span>
+        <button type="button" onClick={() => step(-1)} disabled={!matches.length} aria-label="النتيجة السابقة" className={`${TOOL_BTN} w-10 disabled:opacity-40`}>
+          ↑
+        </button>
+        <button type="button" onClick={() => step(1)} disabled={!matches.length} aria-label="النتيجة التالية" className={`${TOOL_BTN} w-10 disabled:opacity-40`}>
+          ↓
+        </button>
+        <button type="button" onClick={onClose} aria-label="إغلاق البحث" className={`${TOOL_BTN} w-10`}>
+          ✕
+        </button>
+      </div>
+
+      {hasQuery && listOpen && (
+        <ul className="mt-2 max-h-56 overflow-y-auto rounded-2xl border border-slate-200 bg-white text-sm shadow-lg dark:border-slate-700 dark:bg-slate-900">
+          {matches.length === 0 && <li className="px-4 py-3 text-slate-500 dark:text-slate-400">لا توجد نتائج</li>}
+          {matches.slice(0, 50).map((m, i) => (
+            <li key={i}>
+              <button
+                type="button"
+                onClick={() => jumpTo(i)}
+                className={`block w-full px-4 py-2 text-right transition hover:bg-emerald-50 dark:hover:bg-slate-800 ${
+                  i === current ? 'bg-emerald-50 dark:bg-slate-800' : ''
+                }`}
+              >
+                <span className="block text-xs font-bold text-emerald-700 dark:text-emerald-400">{m.section}</span>
+                <span className="text-slate-600 dark:text-slate-300">
+                  …{m.before}
+                  <mark className="rounded bg-amber-200 px-0.5 text-slate-900">{m.text}</mark>
+                  {m.after}…
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 const THEME_KEY = 'psd-theme';
 
 function readStoredTheme() {
@@ -1965,12 +2618,81 @@ function readStoredTheme() {
   }
 }
 
+// القسم الظاهر حالياً، لإبرازه في شريط التنقل السريع
+function useActiveSection(navRef) {
+  const [active, setActive] = useState(null);
+
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const header = navRef.current?.closest('.sticky');
+      const line = (header?.getBoundingClientRect().bottom ?? 120) + 40;
+      let current = null;
+      let currentTop = -Infinity;
+      for (const item of NAV_ITEMS) {
+        const el = document.querySelector(item.href);
+        const top = el?.getBoundingClientRect().top;
+        if (top !== undefined && top <= line && top > currentTop) {
+          current = item.href;
+          currentTop = top;
+        }
+      }
+      setActive(current);
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, [navRef]);
+
+  // إبقاء الرابط النشط ظاهراً داخل الشريط الأفقي (تمرير الشريط فقط، لا الصفحة)
+  useEffect(() => {
+    const nav = navRef.current;
+    const chip = active && nav?.querySelector(`a[href="${active}"]`);
+    if (!chip) return;
+    const navBox = nav.getBoundingClientRect();
+    const chipBox = chip.getBoundingClientRect();
+    nav.scrollBy({ left: chipBox.left + chipBox.width / 2 - (navBox.left + navBox.width / 2) });
+  }, [active, navRef]);
+
+  return active;
+}
+
 export default function PlanetarySurvivalDocument() {
   const [isDark, setIsDark] = useState(() => readStoredTheme() !== 'light');
   const [copyState, setCopyState] = useState('idle'); // idle | copied | error
   const [toast, setToast] = useState({ message: '', tone: 'success', visible: false });
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [slideshowOpen, setSlideshowOpen] = useState(false);
   const resetTimer = useRef(null);
   const toastTimer = useRef(null);
+  const headerRef = useRef(null);
+  const navRef = useRef(null);
+  const contentRef = useRef(null);
+  const activeSection = useActiveSection(navRef);
+  const closeSearch = useCallback(() => setSearchOpen(false), []);
+  const closeSlideshow = useCallback(() => setSlideshowOpen(false), []);
+
+  // «/» يفتح البحث السريع (ما لم يكن المستخدم يكتب في حقل)
+  useEffect(() => {
+    const onKey = (e) => {
+      const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable;
+      if (e.key === '/' && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDark);
@@ -2018,7 +2740,7 @@ export default function PlanetarySurvivalDocument() {
   const handleCopy = useCallback(async () => {
     clearTimeout(resetTimer.current);
     try {
-      await copyToClipboard(buildPlainText());
+      await copyToClipboard(buildDocumentText());
       setCopyState('copied');
       notify('✓ نُسخت الوثيقة كاملةً إلى الحافظة');
     } catch {
@@ -2037,27 +2759,53 @@ export default function PlanetarySurvivalDocument() {
       <ReadingProgress />
 
       {/* شريط علوي ثابت */}
-      <div className="sticky top-0 z-40 border-b print:hidden border-slate-200/80 bg-white/80 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-950/80">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+      <div
+        ref={headerRef}
+        className="sticky top-0 z-40 border-b print:hidden border-slate-200/80 bg-white/80 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-950/80"
+      >
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-2 px-3 py-3 sm:gap-3 sm:px-6">
           <a href="#top" className="flex min-w-0 items-center gap-2">
             <PlanetLogo className="h-8 w-8 shrink-0" />
-            <span className="truncate text-sm font-extrabold text-slate-900 dark:text-white sm:text-base">
+            <span className="hidden truncate text-sm font-extrabold text-slate-900 dark:text-white sm:inline sm:text-base">
               {DOCUMENT_META.title}
             </span>
           </a>
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            <button
+              type="button"
+              onClick={() => setSearchOpen((o) => !o)}
+              aria-label="البحث في الوثيقة"
+              aria-expanded={searchOpen}
+              title="بحث (/)"
+              className={`${TOOL_BTN} w-10 ${searchOpen ? '!border-emerald-500 !text-emerald-600 dark:!text-emerald-400' : ''}`}
+            >
+              <SearchIcon className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setSlideshowOpen(true)}
+              aria-label="العرض التقديمي"
+              title="العرض التقديمي"
+              className={`${TOOL_BTN} w-10`}
+            >
+              <SlidesIcon className="h-4 w-4" />
+            </button>
+            <PrintButton notify={notify} />
             <CopyButton onCopy={handleCopy} state={copyState} compact />
             <ShareMenu notify={notify} />
             <ThemeToggle isDark={isDark} onToggle={() => setIsDark((d) => !d)} />
           </div>
         </div>
-        <nav aria-label="فهرس الفصول" className="mx-auto max-w-5xl overflow-x-auto px-4 pb-2 sm:px-6">
+        <nav ref={navRef} aria-label="التنقل السريع بين الأقسام" className="mx-auto max-w-5xl overflow-x-auto px-4 pb-2 sm:px-6">
           <ol className="flex gap-1.5 whitespace-nowrap text-xs">
             {NAV_ITEMS.map((item) => (
               <li key={item.href}>
                 <a
                   href={item.href}
-                  className={`inline-block rounded-full px-3 py-1 transition ${NAV_TONES[item.tone || 'default']}`}
+                  aria-current={activeSection === item.href ? 'location' : undefined}
+                  className={`inline-block rounded-full px-3 py-1 transition ${NAV_TONES[item.tone || 'default']} ${
+                    activeSection === item.href ? 'bg-emerald-600 !text-white shadow-sm dark:bg-emerald-500 dark:!text-slate-950' : ''
+                  }`}
                 >
                   <span className="font-mono">{item.num}</span> · {item.title}
                 </a>
@@ -2065,70 +2813,86 @@ export default function PlanetarySurvivalDocument() {
             ))}
           </ol>
         </nav>
+        {searchOpen && <QuickFinder rootRef={contentRef} headerRef={headerRef} onClose={closeSearch} />}
       </div>
 
-      {/* الترويسة الرئيسية */}
-      <header
-        id="top"
-        className="print-cover relative overflow-hidden bg-gradient-to-br from-sky-100 via-white to-emerald-100 dark:from-slate-950 dark:via-sky-950 dark:to-emerald-950"
-      >
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 print:hidden rounded-full bg-sky-400/30 blur-3xl dark:bg-sky-500/20"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -bottom-40 -right-24 h-96 w-96 print:hidden rounded-full bg-emerald-400/30 blur-3xl dark:bg-emerald-500/20"
-        />
-        <div className="relative mx-auto flex max-w-5xl flex-col items-center px-4 py-20 text-center sm:px-6 sm:py-28">
-          <PlanetLogo className="h-28 w-28 drop-shadow-2xl print:drop-shadow-none sm:h-36 sm:w-36" />
-          <h1 className="mt-8 bg-gradient-to-l from-sky-700 via-emerald-600 to-sky-700 bg-clip-text print:bg-none print:text-emerald-800 text-4xl font-black leading-tight text-transparent dark:from-sky-300 dark:via-emerald-300 dark:to-sky-300 sm:text-6xl lg:text-7xl">
-            {DOCUMENT_META.title}
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg font-bold text-slate-700 dark:text-slate-200 sm:text-2xl">
-            {DOCUMENT_META.motto}
-          </p>
-          <div className="mt-10 flex flex-wrap justify-center gap-3 print:hidden">
-            <a
-              href="#chapter-01"
-              className="rounded-full bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
-            >
-              ابدأ القراءة ↓
-            </a>
-            <a
-              href="#summary"
-              className="rounded-full border-2 border-emerald-600 px-6 py-3 text-sm font-bold text-emerald-700 transition hover:bg-emerald-50 dark:border-emerald-400 dark:text-emerald-300 dark:hover:bg-emerald-950"
-            >
-              ◆ الخلاصة في دقيقة
-            </a>
-            <CopyButton onCopy={handleCopy} state={copyState} />
+      {/* محتوى الوثيقة (نطاق البحث السريع) */}
+      <div ref={contentRef}>
+        {/* الترويسة الرئيسية */}
+        <header
+          id="top"
+          className="print-cover relative overflow-hidden bg-gradient-to-br from-sky-100 via-white to-emerald-100 dark:from-slate-950 dark:via-sky-950 dark:to-emerald-950"
+        >
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 print:hidden rounded-full bg-sky-400/30 blur-3xl dark:bg-sky-500/20"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-40 -right-24 h-96 w-96 print:hidden rounded-full bg-emerald-400/30 blur-3xl dark:bg-emerald-500/20"
+          />
+          <div className="relative mx-auto flex max-w-5xl flex-col items-center px-4 py-20 text-center sm:px-6 sm:py-28">
+            <PlanetLogo className="h-28 w-28 drop-shadow-2xl print:drop-shadow-none sm:h-36 sm:w-36" />
+            <h1 className="mt-8 bg-gradient-to-l from-sky-700 via-emerald-600 to-sky-700 bg-clip-text print:bg-none print:text-emerald-800 text-4xl font-black leading-tight text-transparent dark:from-sky-300 dark:via-emerald-300 dark:to-sky-300 sm:text-6xl lg:text-7xl">
+              {DOCUMENT_META.title}
+            </h1>
+            <p className="mt-6 max-w-2xl text-lg font-bold text-slate-700 dark:text-slate-200 sm:text-2xl">
+              {DOCUMENT_META.motto}
+            </p>
+            <div className="mt-10 flex flex-wrap justify-center gap-3 print:hidden">
+              <a
+                href="#chapter-01"
+                className="rounded-full bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+              >
+                ابدأ القراءة ↓
+              </a>
+              <a
+                href="#summary"
+                className="rounded-full border-2 border-emerald-600 px-6 py-3 text-sm font-bold text-emerald-700 transition hover:bg-emerald-50 dark:border-emerald-400 dark:text-emerald-300 dark:hover:bg-emerald-950"
+              >
+                ◆ الخلاصة في دقيقة
+              </a>
+              <button
+                type="button"
+                onClick={() => setSlideshowOpen(true)}
+                className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-indigo-500"
+              >
+                <SlidesIcon className="h-4 w-4" />
+                العرض التقديمي
+              </button>
+            </div>
+            <div className="mt-4 flex flex-wrap justify-center gap-2 print:hidden">
+              <CopyButton onCopy={handleCopy} state={copyState} />
+              <ExportButtons notify={notify} />
+            </div>
+            <ShareButtons notify={notify} className="mt-8" />
+            <PrintCoverCredits />
           </div>
-          <ShareButtons notify={notify} className="mt-8" />
-          <PrintCoverCredits />
-        </div>
-      </header>
+        </header>
 
-      {/* الفصول 01–10 */}
-      <main className="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-4xl">
-        {CHAPTERS.map((chapter) => (
-          <Chapter key={chapter.id} chapter={chapter} />
-        ))}
-      </main>
+        {/* الفصول 01–10 */}
+        <main className="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-4xl">
+          {CHAPTERS.map((chapter) => (
+            <Chapter key={chapter.id} chapter={chapter} />
+          ))}
+        </main>
 
-      <ExecutiveSummary />
+        <ExecutiveSummary />
 
-      {/* الفصل 11 — السطر الأخير */}
-      <Finale notify={notify} />
+        {/* الفصل 11 — السطر الأخير */}
+        <Finale notify={notify} />
 
-      <Credits />
+        <Credits />
 
-      <footer className="border-t border-slate-200 bg-white py-8 text-center text-xs text-slate-500 dark:border-slate-800 dark:bg-black dark:text-slate-500">
-        {DOCUMENT_META.title} · <Inline text={CREDITS.footer} />
-      </footer>
+        <footer className="border-t border-slate-200 bg-white py-8 text-center text-xs text-slate-500 dark:border-slate-800 dark:bg-black dark:text-slate-500">
+          {DOCUMENT_META.title} · <Inline text={CREDITS.footer} />
+        </footer>
+      </div>
 
       <ScrollToTop />
       <Toast toast={toast} />
       <PrintWatermark />
+      {slideshowOpen && <Slideshow onClose={closeSlideshow} />}
     </div>
   );
 }
