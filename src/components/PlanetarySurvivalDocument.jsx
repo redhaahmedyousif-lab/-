@@ -500,16 +500,86 @@ const CREDITS = {
     },
   ],
   copyright:
-    '© 2026-2027 جميع الحقوق محفوظة وموثقة كجزء من متطلبات مشاريع مادة الأفراد والمجتمعات (MYP\u00a0A).', // مسافة غير قابلة للكسر تُبقي «MYP A» في سطر واحد
+    '© 2026-2027 جميع الحقوق محفوظة ضمن متطلبات مشاريع مادة الأفراد والمجتمعات (MYP\u00a0A).', // مسافة غير قابلة للكسر تُبقي «MYP A» في سطر واحد
   footer: '© 2026-2027 رضا أحمد يوسف · مدرسة الميثاق الإعدادية للبنين',
   statement:
     'هذه الوثيقة الرقمية وخوارزميات البقاء الكوكبي ثمرة جهد أكاديمي وفكري، ويُحفظ العمل بالكامل باسم المعد وتحت إشراف معلم المادة.',
 };
 
+// الخلاصة التنفيذية: إيجاز لركائز الوثيقة، مستمد من نصوص الفصول 01–10
+const SUMMARY = {
+  title: 'الخلاصة التنفيذية',
+  en: 'Executive Summary',
+  lead: 'وثيقة البقاء الكوكبي في دقيقة واحدة: إنذار مُقاس، وخوارزميات واضحة، وتقنيات مصنّفة بحسب جاهزيتها، وإطار تحقق لا يعترف إلا بما يُقاس ويُدقَّق.',
+  stats: [
+    { value: '+1.43°C', label: 'احترار عام 2025 فوق مستوى ما قبل الصناعة' },
+    { value: '43%', label: 'خفض مطلوب للانبعاثات بحلول 2030' },
+    { value: '84%', label: 'خفض مطلوب للانبعاثات بحلول 2050' },
+    { value: '5', label: 'أركان تكنولوجية في ثلاثة مستويات جاهزية' },
+  ],
+  pillars: [
+    {
+      icon: '🚨',
+      title: 'الإنذار',
+      chapters: '01–02',
+      points: [
+        'الأرض تجاوزت 1.43°C فوق مستوى ما قبل الصناعة، وكل جزء من الدرجة تزيد معه المخاطر.',
+        'الحلول الجزئية لا تكفي: المطلوب خفض عميق وسريع على مستوى منظومة الكوكب.',
+      ],
+    },
+    {
+      icon: '⟨⟩',
+      title: 'خوارزميات البقاء',
+      chapters: '02–10',
+      points: ['نقيس لننقذ.', 'نزرع لنحيا.', 'نكتب لنفتح عهدًا جديدًا.'],
+    },
+    {
+      icon: '△',
+      title: 'هرم الجاهزية',
+      chapters: '03–05',
+      points: [
+        'A — مثبتة وقابلة للتوسع: الشبكة الذكية للطاقة النظيفة (CEIG).',
+        'B — ناشئة: أبراج الهواء النقي والاستعادة البيئية المؤتمتة.',
+        'C — تجريبية: شبكة المحيطات الذكية وإدارة الكربون المتقدمة.',
+        'كل ركن يخضع لاختبار قابلية البقاء عبر ستة محاور.',
+      ],
+    },
+    {
+      icon: '✓',
+      title: 'إطار MRV والتدقيق',
+      chapters: '06',
+      points: [
+        'قياس ← إبلاغ ← تحقق ← تدقيق مستقل.',
+        'لا يُسجَّل في سجل الإنجاز إلا ما قيس وأُبلغ عنه وتُحقق منه ودُقّق.',
+      ],
+    },
+    {
+      icon: '⟶',
+      title: 'التنفيذ والحوكمة',
+      chapters: '07–09',
+      points: [
+        'اختبار (2027–2030) ← توسيع (2030–2040) ← دمج (2040–2050)، عبر بوابتَي قرار.',
+        'تمويل من عوائد تسعير الكربون والسندات الخضراء والشراكات.',
+        'لا توسّع ما لم تُثبت التجربة أثره وسلامته وقابليته للقياس.',
+      ],
+    },
+  ],
+};
+
 const NAV_ITEMS = [
-  ...CHAPTERS.map((c) => ({ id: c.id, title: c.title })),
-  { id: FINALE.id, title: FINALE.title },
+  ...CHAPTERS.map((c) => ({ href: `#chapter-${c.id}`, num: c.id, title: c.title })),
+  { href: '#summary', num: '◆', title: SUMMARY.title, tone: 'summary' },
+  { href: `#chapter-${FINALE.id}`, num: FINALE.id, title: FINALE.title, tone: 'finale' },
+  { href: '#credits', num: '©', title: CREDITS.title, tone: 'credits' },
 ];
+
+const NAV_TONES = {
+  default:
+    'text-slate-600 hover:bg-sky-100 hover:text-sky-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-sky-300',
+  summary: 'text-emerald-700 hover:bg-emerald-100 dark:text-emerald-400 dark:hover:bg-slate-800',
+  finale: 'text-amber-700 hover:bg-amber-100 dark:text-amber-400 dark:hover:bg-slate-800',
+  credits: 'text-slate-500 hover:bg-slate-100 dark:text-slate-500 dark:hover:bg-slate-800',
+};
 
 /* ------------------------------------------------------------------ */
 /*  تحويل الوثيقة إلى نص قابل للنسخ                                    */
@@ -598,6 +668,13 @@ function buildPlainText() {
     out.push('', divider);
   });
 
+  out.push('', `${SUMMARY.title} (${SUMMARY.en})`, '', SUMMARY.lead, '');
+  out.push(SUMMARY.stats.map((st) => `${st.value} ${st.label}`).join(' | '));
+  SUMMARY.pillars.forEach((pillar) => {
+    out.push('', `◆ ${pillar.title} (الفصول ${pillar.chapters})`, ...pillar.points.map((pt) => `• ${pt}`));
+  });
+  out.push('', divider);
+
   const { call } = FINALE;
   out.push(
     '',
@@ -645,9 +722,12 @@ async function copyToClipboard(text) {
 /*  مكونات العرض الأساسية                                               */
 /* ------------------------------------------------------------------ */
 
+// نطاق رقمي مثل 1850–1900 أو 01–02: داخل نص عربي قد تعكس خوارزمية الاتجاه ترتيب الرقمين
+const NUMBER_RANGE = /^\d+(?:\.\d+)?[–-]\d+(?:\.\d+)?$/;
+
 function Inline({ text }) {
-  // **غامق** و _{منخفض} (مثل PM_{2.5})
-  return text.split(/(\*\*.+?\*\*|_\{.+?\})/g).map((part, i) => {
+  // **غامق**، و _{منخفض} (مثل PM_{2.5})، والنطاقات الرقمية التي تُعزل باتجاه LTR
+  return text.split(/(\*\*.+?\*\*|_\{.+?\}|\d+(?:\.\d+)?[–-]\d+(?:\.\d+)?)/g).map((part, i) => {
     if (part.startsWith('**')) {
       return (
         <strong key={i} className="font-bold text-sky-700 dark:text-sky-300">
@@ -656,6 +736,13 @@ function Inline({ text }) {
       );
     }
     if (part.startsWith('_{')) return <sub key={i}>{part.slice(2, -1)}</sub>;
+    if (NUMBER_RANGE.test(part)) {
+      return (
+        <bdi key={i} dir="ltr">
+          {part}
+        </bdi>
+      );
+    }
     return <Fragment key={i}>{part}</Fragment>;
   });
 }
@@ -1039,7 +1126,9 @@ function Stat({ value, note, caption, source }) {
         +{value}
         <span className="ms-2 align-top text-lg font-semibold text-red-500/80">{note}</span>
       </p>
-      <p className="text-base font-semibold text-slate-800 dark:text-slate-200">{caption}</p>
+      <p className="text-base font-semibold text-slate-800 dark:text-slate-200">
+        <Inline text={caption} />
+      </p>
       <p className="text-xs text-slate-500 dark:text-slate-400">{source}</p>
     </div>
   );
@@ -1529,6 +1618,111 @@ const CRESCENDO_TONES = {
   hope: 'text-xl font-bold text-emerald-700 dark:text-emerald-300 sm:text-3xl',
 };
 
+function ExecutiveSummary() {
+  return (
+    <section
+      id="summary"
+      aria-labelledby="summary-title"
+      className="scroll-mt-28 border-t border-slate-200 bg-gradient-to-b from-emerald-50 via-white to-sky-50 py-16 dark:border-slate-800 dark:from-emerald-950/40 dark:via-slate-950 dark:to-sky-950/30 sm:py-24"
+    >
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
+        <header className="text-center">
+          <p className="text-xs font-bold tracking-[0.35em] text-emerald-700 dark:text-emerald-400">◆ {SUMMARY.en}</p>
+          <h2 id="summary-title" className="mt-3 text-3xl font-black text-slate-900 dark:text-white sm:text-5xl">
+            {SUMMARY.title}
+          </h2>
+          <p className="mx-auto mt-5 max-w-2xl font-naskh text-lg leading-loose text-slate-600 dark:text-slate-300 sm:text-xl">
+            {SUMMARY.lead}
+          </p>
+        </header>
+
+        <dl className="mt-10 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+          {SUMMARY.stats.map((st) => (
+            <div
+              key={st.label}
+              className="rounded-2xl border border-emerald-300/70 bg-white p-4 text-center shadow-sm dark:border-emerald-500/30 dark:bg-slate-900 sm:p-5"
+            >
+              <dd dir="ltr" className="font-mono text-3xl font-black text-emerald-600 dark:text-emerald-400 sm:text-4xl">
+                {st.value}
+              </dd>
+              <dt className="mt-2 text-xs font-semibold leading-relaxed text-slate-600 dark:text-slate-400 sm:text-sm">
+                {st.label}
+              </dt>
+            </div>
+          ))}
+        </dl>
+
+        {/* flex بدل grid حتى يتوسّط الصف الأخير غير المكتمل */}
+        <div className="mt-8 flex flex-wrap justify-center gap-4">
+          {SUMMARY.pillars.map((pillar) => (
+            <article
+              key={pillar.title}
+              className="w-full rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 sm:p-6 md:w-[calc(50%-0.5rem)] lg:w-[calc((100%-2rem)/3)]"
+            >
+              <header className="flex items-center gap-3">
+                <span
+                  aria-hidden="true"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-sky-600 font-mono text-base font-bold text-white shadow"
+                >
+                  {pillar.icon}
+                </span>
+                <div>
+                  <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">{pillar.title}</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    الفصول <Inline text={pillar.chapters} />
+                  </p>
+                </div>
+              </header>
+              <ul className="mt-4 space-y-2">
+                {pillar.points.map((pt) => (
+                  <li key={pt} className="flex gap-2 text-sm leading-relaxed text-slate-700 dark:text-slate-300 sm:text-base">
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" aria-hidden="true" />
+                    <span>
+                      <Inline text={pt} />
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ScrollToTop() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setVisible(window.scrollY > 600);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const scrollUp = () => {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={scrollUp}
+      aria-label="العودة إلى أعلى الصفحة"
+      tabIndex={visible ? 0 : -1}
+      className={`fixed bottom-6 left-4 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 ring-1 ring-emerald-400/50 transition-all duration-300 hover:-translate-y-1 hover:bg-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 sm:left-6 ${
+        visible ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0'
+      }`}
+    >
+      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+        <path d="M12 19V5M5 12l7-7 7 7" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </button>
+  );
+}
+
 function Credits() {
   return (
     <section
@@ -1562,7 +1756,7 @@ function Credits() {
 
         <div className="mt-8 rounded-2xl border-2 border-emerald-500/40 bg-emerald-50 px-6 py-6 text-center dark:border-emerald-500/30 dark:bg-emerald-500/10">
           <p className="text-sm font-bold leading-relaxed text-slate-800 dark:text-slate-100 sm:text-base">
-            {CREDITS.copyright}
+            <Inline text={CREDITS.copyright} />
           </p>
           <p className="mt-4 font-naskh text-base italic leading-loose text-slate-700 dark:text-slate-300 sm:text-lg">
             «{CREDITS.statement}»
@@ -1725,17 +1919,13 @@ export default function PlanetarySurvivalDocument() {
         </div>
         <nav aria-label="فهرس الفصول" className="mx-auto max-w-5xl overflow-x-auto px-4 pb-2 sm:px-6">
           <ol className="flex gap-1.5 whitespace-nowrap text-xs">
-            {NAV_ITEMS.map((c) => (
-              <li key={c.id}>
+            {NAV_ITEMS.map((item) => (
+              <li key={item.href}>
                 <a
-                  href={`#chapter-${c.id}`}
-                  className={`inline-block rounded-full px-3 py-1 transition ${
-                    c.id === FINALE.id
-                      ? 'text-amber-700 hover:bg-amber-100 dark:text-amber-400 dark:hover:bg-slate-800'
-                      : 'text-slate-600 hover:bg-sky-100 hover:text-sky-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-sky-300'
-                  }`}
+                  href={item.href}
+                  className={`inline-block rounded-full px-3 py-1 transition ${NAV_TONES[item.tone || 'default']}`}
                 >
-                  <span className="font-mono">{c.id}</span> · {c.title}
+                  <span className="font-mono">{item.num}</span> · {item.title}
                 </a>
               </li>
             ))}
@@ -1785,14 +1975,17 @@ export default function PlanetarySurvivalDocument() {
       </main>
 
       {/* الفصل 11 — السطر الأخير */}
+      <ExecutiveSummary />
+
       <Finale notify={notify} />
 
       <Credits />
 
       <footer className="border-t border-slate-200 bg-white py-8 text-center text-xs text-slate-500 dark:border-slate-800 dark:bg-black dark:text-slate-500">
-        {DOCUMENT_META.title} · {CREDITS.footer}
+        {DOCUMENT_META.title} · <Inline text={CREDITS.footer} />
       </footer>
 
+      <ScrollToTop />
       <Toast toast={toast} />
     </div>
   );
