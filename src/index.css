@@ -9,3 +9,124 @@ html {
 body {
   @apply bg-white dark:bg-slate-950;
 }
+
+/* ------------------------------------------------------------------ */
+/*  الطباعة والتصدير إلى PDF                                            */
+/* ------------------------------------------------------------------ */
+
+@page {
+  size: A4;
+  margin: 18mm 16mm 20mm;
+
+  @top-center {
+    content: 'وثيقة البقاء الكوكبي — MYP A';
+    font-family: 'Noto Kufi Arabic', Tahoma, sans-serif;
+    font-size: 8pt;
+    color: #64748b;
+  }
+
+  @bottom-center {
+    content: counter(page) ' / ' counter(pages);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8pt;
+    color: #64748b;
+  }
+}
+
+/* صفحة الغلاف بلا ترويسة ولا ترقيم */
+@page :first {
+  @top-center {
+    content: none;
+  }
+  @bottom-center {
+    content: none;
+  }
+}
+
+@media print {
+  html {
+    /* كل أحجام Tailwind بوحدة rem، فهذا يضبط مقياس الوثيقة كلها للورق */
+    font-size: 11.5px;
+    scroll-behavior: auto;
+  }
+
+  body,
+  body * {
+    /* طباعة الألوان والإطارات كما صُممت (تبقى الخلفيات الكبيرة بيضاء أدناه) */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body {
+    background: #fff !important;
+  }
+
+  /* الأقسام الكبيرة بخلفية بيضاء لتوفير الحبر */
+  #top,
+  #summary,
+  #credits,
+  #chapter-11,
+  footer {
+    background: #fff !important;
+  }
+
+  /* الغلاف: صفحة مستقلة ممركزة عمودياً */
+  .print-cover {
+    min-height: 245mm;
+    display: flex;
+    align-items: center;
+    break-after: page;
+  }
+
+  /* مسافات أكثر إحكاماً من الشاشة */
+  main > article,
+  #summary,
+  #chapter-11,
+  #credits {
+    padding-top: 1.5rem !important;
+    padding-bottom: 1.5rem !important;
+  }
+
+  /* الخلاصة والخاتمة والتوثيق تبدأ كل منها في صفحة جديدة */
+  #summary,
+  #chapter-11,
+  #credits {
+    break-before: page;
+    border-top: none !important;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  header {
+    break-after: avoid;
+  }
+
+  p,
+  li {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* لا تنقسم البطاقات والإطارات والجداول بين صفحتين */
+  blockquote,
+  figure,
+  article article,
+  section section > div,
+  li,
+  tr,
+  dl > div,
+  .rounded-2xl,
+  .rounded-xl {
+    break-inside: avoid;
+  }
+
+  /* الظلال والحركات لا معنى لها على الورق */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}

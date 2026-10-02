@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useId, useRef, useState } from 'react';
 
 /* ------------------------------------------------------------------ */
 /*  محتوى الوثيقة — النص النهائي المعتمد                               */
@@ -748,21 +748,26 @@ function Inline({ text }) {
 }
 
 function PlanetLogo({ className = '' }) {
+  // معرّفات تدرّج فريدة لكل نسخة: لو تشاركت النسخ معرّفاً واحداً وأُخفيت الأولى
+  // (مثل الشريط العلوي عند الطباعة) لفقدت بقية النسخ ألوانها
+  const uid = useId();
+  const planetId = `psd-planet-${uid}`;
+  const ringId = `psd-ring-${uid}`;
   return (
     <svg viewBox="0 0 120 120" className={className} aria-hidden="true">
       <defs>
-        <radialGradient id="psd-planet" cx="38%" cy="35%" r="70%">
+        <radialGradient id={planetId} cx="38%" cy="35%" r="70%">
           <stop offset="0%" stopColor="#6ee7b7" />
           <stop offset="45%" stopColor="#0ea5e9" />
           <stop offset="100%" stopColor="#0c4a6e" />
         </radialGradient>
-        <linearGradient id="psd-ring" x1="0" x2="1" y1="0" y2="0">
+        <linearGradient id={ringId} x1="0" x2="1" y1="0" y2="0">
           <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.2" />
           <stop offset="50%" stopColor="#fbbf24" />
           <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.2" />
         </linearGradient>
       </defs>
-      <circle cx="60" cy="60" r="34" fill="url(#psd-planet)" />
+      <circle cx="60" cy="60" r="34" fill={`url(#${planetId})`} />
       <path
         d="M40 50c6-6 14-4 18 1s10 3 13-2M45 72c5 3 11 2 15-2s11-3 15 1"
         fill="none"
@@ -777,7 +782,7 @@ function PlanetLogo({ className = '' }) {
         rx="54"
         ry="16"
         fill="none"
-        stroke="url(#psd-ring)"
+        stroke={`url(#${ringId})`}
         strokeWidth="3"
         transform="rotate(-18 60 60)"
       />
@@ -833,7 +838,7 @@ function Toast({ toast }) {
     <div
       role="status"
       aria-live="polite"
-      className={`pointer-events-none fixed inset-x-4 bottom-6 z-50 mx-auto flex max-w-sm items-center justify-center gap-3 rounded-2xl px-5 py-4 text-sm font-semibold shadow-2xl ring-1 transition-all duration-300 sm:inset-x-auto sm:left-1/2 sm:w-full sm:-translate-x-1/2 ${
+      className={`pointer-events-none fixed inset-x-4 bottom-6 z-50 print:hidden mx-auto flex max-w-sm items-center justify-center gap-3 rounded-2xl px-5 py-4 text-sm font-semibold shadow-2xl ring-1 transition-all duration-300 sm:inset-x-auto sm:left-1/2 sm:w-full sm:-translate-x-1/2 ${
         toast.visible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
       } ${toast.tone === 'error' ? 'bg-red-600 text-white ring-red-400' : 'bg-emerald-600 text-white ring-emerald-400'}`}
     >
@@ -873,7 +878,7 @@ function ReadingProgress() {
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={percent}
-      className="fixed inset-x-0 top-0 z-[60] h-1 bg-emerald-500/15"
+      className="fixed inset-x-0 top-0 z-[60] h-1 bg-emerald-500/15 print:hidden"
     >
       {/* يمتلئ من اليمين إلى اليسار بما يتوافق مع اتجاه القراءة العربية */}
       <div
@@ -968,7 +973,7 @@ function ShareButtons({ notify, label = 'شارك الوثيقة', className = '
   const { canNativeShare, copyLink, nativeShare, links } = useShareActions(notify);
   const { whatsapp, x } = links();
   return (
-    <div className={`flex flex-col items-center gap-3 ${className}`}>
+    <div className={`flex flex-col items-center gap-3 print:hidden ${className}`}>
       <p className="text-xs font-bold tracking-widest text-slate-500 dark:text-slate-400">{label}</p>
       <div className="flex flex-wrap justify-center gap-2">
         <a
@@ -1492,7 +1497,7 @@ function PlanetaryDashboard() {
       </header>
 
       {/* جدول للشاشات الكبيرة */}
-      <div className="hidden overflow-x-auto lg:block">
+      <div className="hidden overflow-x-auto lg:block print:block">
         <table className="w-full text-right text-sm">
           <thead className="bg-slate-100 text-xs text-slate-600 dark:bg-slate-800/60 dark:text-slate-400">
             <tr>
@@ -1524,7 +1529,7 @@ function PlanetaryDashboard() {
       </div>
 
       {/* بطاقات للشاشات الصغيرة والمتوسطة */}
-      <ul className="divide-y divide-slate-200 dark:divide-slate-800 lg:hidden">
+      <ul className="divide-y divide-slate-200 dark:divide-slate-800 lg:hidden print:hidden">
         {DASHBOARD.map((row) => (
           <li key={row.sector} className="px-5 py-5">
             <p className="text-base font-extrabold text-slate-900 dark:text-white">{row.sector}</p>
@@ -1575,7 +1580,7 @@ function ChapterHeader({ id, title, en }) {
     <header className="mb-8 flex items-start gap-4 sm:gap-6">
       <span
         aria-hidden="true"
-        className="bg-gradient-to-b from-sky-500 to-emerald-500 bg-clip-text font-mono text-5xl font-black leading-none text-transparent sm:text-7xl"
+        className="bg-gradient-to-b from-sky-500 to-emerald-500 bg-clip-text font-mono print:bg-none print:text-sky-600 text-5xl font-black leading-none text-transparent sm:text-7xl"
       >
         {id}
       </span>
@@ -1712,7 +1717,7 @@ function ScrollToTop() {
       onClick={scrollUp}
       aria-label="العودة إلى أعلى الصفحة"
       tabIndex={visible ? 0 : -1}
-      className={`fixed bottom-6 left-4 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 ring-1 ring-emerald-400/50 transition-all duration-300 hover:-translate-y-1 hover:bg-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 sm:left-6 ${
+      className={`fixed bottom-6 left-4 z-40 flex print:hidden h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 ring-1 ring-emerald-400/50 transition-all duration-300 hover:-translate-y-1 hover:bg-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 sm:left-6 ${
         visible ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0'
       }`}
     >
@@ -1720,6 +1725,50 @@ function ScrollToTop() {
         <path d="M12 19V5M5 12l7-7 7 7" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </button>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  الطباعة                                                            */
+/* ------------------------------------------------------------------ */
+
+const WATERMARK = {
+  title: 'وثيقة البقاء الكوكبي — MYP A',
+  subtitle: 'مدرسة الميثاق الإعدادية للبنين',
+};
+
+// علامة مائية تظهر في الطباعة فقط؛ العنصر الثابت (fixed) يتكرر على كل صفحة مطبوعة
+function PrintWatermark() {
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none fixed inset-0 z-[70] hidden select-none items-center justify-center overflow-hidden print:flex"
+    >
+      <div className="flex -rotate-[30deg] flex-col items-center gap-4 text-center text-emerald-900/[0.07]">
+        <p className="whitespace-nowrap text-6xl font-black">{WATERMARK.title}</p>
+        <p className="whitespace-nowrap text-3xl font-extrabold tracking-wide">{WATERMARK.subtitle}</p>
+      </div>
+    </div>
+  );
+}
+
+// بيانات التسليم الأكاديمي على صفحة الغلاف المطبوعة
+function PrintCoverCredits() {
+  return (
+    <dl className="mt-16 hidden w-full max-w-xl grid-cols-1 gap-3 border-t border-slate-300 pt-8 text-sm print:grid">
+      {CREDITS.people.map((p) => (
+        <div key={p.role} className="flex justify-between gap-6">
+          <dt className="font-bold text-slate-500">{p.role}</dt>
+          <dd className="text-left font-bold text-slate-900">
+            {p.name}
+            {p.detail && <span className="block text-xs font-normal text-slate-600">{p.detail}</span>}
+          </dd>
+        </div>
+      ))}
+      <p className="mt-6 text-center text-xs text-slate-500">
+        <Inline text={CREDITS.copyright} />
+      </p>
+    </dl>
   );
 }
 
@@ -1818,7 +1867,7 @@ function Finale({ notify }) {
         <div className="mx-auto mt-24 max-w-3xl text-center">
           <div className="mx-auto mb-10 h-px w-48 bg-gradient-to-l from-transparent via-amber-500 to-transparent" />
           <p className="text-xs font-bold tracking-[0.4em] text-amber-600 dark:text-amber-400">السطر الأخير</p>
-          <p className="mt-6 bg-gradient-to-l from-amber-500 via-sky-500 to-emerald-500 bg-clip-text text-2xl font-black leading-[1.9] text-transparent dark:from-amber-300 dark:via-sky-300 dark:to-emerald-300 sm:text-4xl sm:leading-[1.8]">
+          <p className="mt-6 bg-gradient-to-l from-amber-500 via-sky-500 to-emerald-500 bg-clip-text print:bg-none print:text-emerald-800 text-2xl font-black leading-[1.9] text-transparent dark:from-amber-300 dark:via-sky-300 dark:to-emerald-300 sm:text-4xl sm:leading-[1.8]">
             {FINALE.finalLine}
           </p>
           <div className="mt-8 flex justify-center gap-4 text-3xl" aria-hidden="true">
@@ -1867,6 +1916,23 @@ export default function PlanetarySurvivalDocument() {
     }
   }, [isDark]);
 
+  // الطباعة دائماً بالألوان الفاتحة مهما كان الوضع المختار على الشاشة
+  useEffect(() => {
+    const root = document.documentElement;
+    const toLight = () => root.classList.remove('dark');
+    const restore = () => root.classList.toggle('dark', isDark);
+    const printQuery = window.matchMedia('print');
+    const onChange = (e) => (e.matches ? toLight() : restore());
+    window.addEventListener('beforeprint', toLight);
+    window.addEventListener('afterprint', restore);
+    printQuery.addEventListener('change', onChange);
+    return () => {
+      window.removeEventListener('beforeprint', toLight);
+      window.removeEventListener('afterprint', restore);
+      printQuery.removeEventListener('change', onChange);
+    };
+  }, [isDark]);
+
   useEffect(
     () => () => {
       clearTimeout(resetTimer.current);
@@ -1903,7 +1969,7 @@ export default function PlanetarySurvivalDocument() {
       <ReadingProgress />
 
       {/* شريط علوي ثابت */}
-      <div className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/80 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-950/80">
+      <div className="sticky top-0 z-40 border-b print:hidden border-slate-200/80 bg-white/80 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-950/80">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <a href="#top" className="flex min-w-0 items-center gap-2">
             <PlanetLogo className="h-8 w-8 shrink-0" />
@@ -1936,25 +2002,25 @@ export default function PlanetarySurvivalDocument() {
       {/* الترويسة الرئيسية */}
       <header
         id="top"
-        className="relative overflow-hidden bg-gradient-to-br from-sky-100 via-white to-emerald-100 dark:from-slate-950 dark:via-sky-950 dark:to-emerald-950"
+        className="print-cover relative overflow-hidden bg-gradient-to-br from-sky-100 via-white to-emerald-100 dark:from-slate-950 dark:via-sky-950 dark:to-emerald-950"
       >
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-sky-400/30 blur-3xl dark:bg-sky-500/20"
+          className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 print:hidden rounded-full bg-sky-400/30 blur-3xl dark:bg-sky-500/20"
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -bottom-40 -right-24 h-96 w-96 rounded-full bg-emerald-400/30 blur-3xl dark:bg-emerald-500/20"
+          className="pointer-events-none absolute -bottom-40 -right-24 h-96 w-96 print:hidden rounded-full bg-emerald-400/30 blur-3xl dark:bg-emerald-500/20"
         />
         <div className="relative mx-auto flex max-w-5xl flex-col items-center px-4 py-20 text-center sm:px-6 sm:py-28">
-          <PlanetLogo className="h-28 w-28 drop-shadow-2xl sm:h-36 sm:w-36" />
-          <h1 className="mt-8 bg-gradient-to-l from-sky-700 via-emerald-600 to-sky-700 bg-clip-text text-4xl font-black leading-tight text-transparent dark:from-sky-300 dark:via-emerald-300 dark:to-sky-300 sm:text-6xl lg:text-7xl">
+          <PlanetLogo className="h-28 w-28 drop-shadow-2xl print:drop-shadow-none sm:h-36 sm:w-36" />
+          <h1 className="mt-8 bg-gradient-to-l from-sky-700 via-emerald-600 to-sky-700 bg-clip-text print:bg-none print:text-emerald-800 text-4xl font-black leading-tight text-transparent dark:from-sky-300 dark:via-emerald-300 dark:to-sky-300 sm:text-6xl lg:text-7xl">
             {DOCUMENT_META.title}
           </h1>
           <p className="mt-6 max-w-2xl text-lg font-bold text-slate-700 dark:text-slate-200 sm:text-2xl">
             {DOCUMENT_META.motto}
           </p>
-          <div className="mt-10 flex flex-wrap justify-center gap-3">
+          <div className="mt-10 flex flex-wrap justify-center gap-3 print:hidden">
             <a
               href="#chapter-01"
               className="rounded-full bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
@@ -1964,6 +2030,7 @@ export default function PlanetarySurvivalDocument() {
             <CopyButton onCopy={handleCopy} state={copyState} />
           </div>
           <ShareButtons notify={notify} className="mt-8" />
+          <PrintCoverCredits />
         </div>
       </header>
 
@@ -1974,9 +2041,9 @@ export default function PlanetarySurvivalDocument() {
         ))}
       </main>
 
-      {/* الفصل 11 — السطر الأخير */}
       <ExecutiveSummary />
 
+      {/* الفصل 11 — السطر الأخير */}
       <Finale notify={notify} />
 
       <Credits />
@@ -1987,6 +2054,7 @@ export default function PlanetarySurvivalDocument() {
 
       <ScrollToTop />
       <Toast toast={toast} />
+      <PrintWatermark />
     </div>
   );
 }
