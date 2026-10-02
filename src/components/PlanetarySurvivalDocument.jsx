@@ -481,6 +481,31 @@ const FINALE = {
   signature: 'هذه الوثيقة ليست مجرد كلمات، بل خطة بقاء كوكبي.',
 };
 
+const CREDITS = {
+  title: 'التوثيق والحقوق',
+  people: [
+    {
+      role: 'إعداد وتطوير',
+      name: 'الطالب رضا أحمد يوسف',
+      detail: 'الصف الثاني الإعدادي — برنامج السنوات المتوسطة MYP',
+    },
+    {
+      role: 'تحت إشراف ومراجعة',
+      name: 'أستاذ حسن معيوف',
+      detail: 'معلم مادة الأفراد والمجتمعات',
+    },
+    {
+      role: 'المؤسسة',
+      name: 'مدرسة الميثاق الإعدادية للبنين',
+    },
+  ],
+  copyright:
+    '© 2026-2027 جميع الحقوق محفوظة وموثقة كجزء من متطلبات مشاريع مادة الأفراد والمجتمعات (MYP\u00a0A).', // مسافة غير قابلة للكسر تُبقي «MYP A» في سطر واحد
+  footer: '© 2026-2027 رضا أحمد يوسف · مدرسة الميثاق الإعدادية للبنين',
+  statement:
+    'هذه الوثيقة الرقمية وخوارزميات البقاء الكوكبي ثمرة جهد أكاديمي وفكري، ويُحفظ العمل بالكامل باسم المعد وتحت إشراف معلم المادة.',
+};
+
 const NAV_ITEMS = [
   ...CHAPTERS.map((c) => ({ id: c.id, title: c.title })),
   { id: FINALE.id, title: FINALE.title },
@@ -583,7 +608,16 @@ function buildPlainText() {
     '',
     FINALE.finalLine,
     '',
-    FINALE.signature
+    FINALE.signature,
+    '',
+    divider,
+    '',
+    CREDITS.title,
+    '',
+    ...CREDITS.people.map((p) => `${p.role}: ${p.name}${p.detail ? ` (${p.detail})` : ''}`),
+    '',
+    CREDITS.copyright,
+    `«${CREDITS.statement}»`
   );
 
   return out.join('\n');
@@ -1495,6 +1529,50 @@ const CRESCENDO_TONES = {
   hope: 'text-xl font-bold text-emerald-700 dark:text-emerald-300 sm:text-3xl',
 };
 
+function Credits() {
+  return (
+    <section
+      id="credits"
+      aria-labelledby="credits-title"
+      className="scroll-mt-28 border-t border-slate-200 bg-slate-50 py-16 dark:border-slate-800 dark:bg-slate-950 sm:py-20"
+    >
+      <div className="mx-auto max-w-3xl px-4 sm:px-6">
+        <div className="text-center">
+          <PlanetLogo className="mx-auto h-12 w-12" />
+          <h2 id="credits-title" className="mt-4 text-2xl font-extrabold text-slate-900 dark:text-white sm:text-3xl">
+            {CREDITS.title}
+          </h2>
+          <div className="mx-auto mt-4 h-px w-32 bg-gradient-to-l from-transparent via-emerald-500 to-transparent" />
+        </div>
+
+        <dl className="mt-10 grid gap-4 sm:grid-cols-3">
+          {CREDITS.people.map((p) => (
+            <div
+              key={p.role}
+              className="rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900"
+            >
+              <dt className="text-xs font-bold tracking-wide text-emerald-700 dark:text-emerald-400">{p.role}</dt>
+              <dd className="mt-2 text-base font-extrabold text-slate-900 dark:text-white">{p.name}</dd>
+              {p.detail && (
+                <dd className="mt-1 text-sm leading-relaxed text-slate-600 dark:text-slate-400">{p.detail}</dd>
+              )}
+            </div>
+          ))}
+        </dl>
+
+        <div className="mt-8 rounded-2xl border-2 border-emerald-500/40 bg-emerald-50 px-6 py-6 text-center dark:border-emerald-500/30 dark:bg-emerald-500/10">
+          <p className="text-sm font-bold leading-relaxed text-slate-800 dark:text-slate-100 sm:text-base">
+            {CREDITS.copyright}
+          </p>
+          <p className="mt-4 font-naskh text-base italic leading-loose text-slate-700 dark:text-slate-300 sm:text-lg">
+            «{CREDITS.statement}»
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Finale({ notify }) {
   const { call } = FINALE;
   return (
@@ -1709,8 +1787,10 @@ export default function PlanetarySurvivalDocument() {
       {/* الفصل 11 — السطر الأخير */}
       <Finale notify={notify} />
 
+      <Credits />
+
       <footer className="border-t border-slate-200 bg-white py-8 text-center text-xs text-slate-500 dark:border-slate-800 dark:bg-black dark:text-slate-500">
-        {DOCUMENT_META.title} · {DOCUMENT_META.motto}
+        {DOCUMENT_META.title} · {CREDITS.footer}
       </footer>
 
       <Toast toast={toast} />
