@@ -457,24 +457,29 @@ const FINALE = {
       'أيها الشعراء',
       'أيها العلماء',
     ],
-    tail: 'وكل من يتنفس هواء هذا الكوكب…',
-    oath: 'أنتم لا توقعون على ورق، بل على مستقبل الحياة.',
   },
-  // tone: base | strong | dark | hope — يحدد الإيقاع البصري للتدرج الخاتمي
-  crescendo: [
-    {
-      tone: 'base',
-      text: 'إن الشيفرة الأساسية لنظام الأرض تحتاج إلى إعادة كتابة، وما زال في هذه الشيفرة سطرٌ لم يُكتب بعد.',
-    },
-    { tone: 'base', text: 'نحن لا ننتظر أن تكتب الكارثة السطر الأخير.' },
-    { tone: 'strong', text: 'سنكتبه نحن.' },
-    { tone: 'base', text: 'لا بالحبر؛ بالعلم، والهندسة، والقياس، والقرار.' },
-    { tone: 'dark', text: 'إذا تعطلت الأرض، ارتجّ الكون كله.' },
-    { tone: 'dark', text: 'إذا ضاع الكوكب، ضاع الإنسان. وإذا ضاع الإنسان، ضاع المعنى.' },
-    {
-      tone: 'hope',
-      text: 'لكن إذا كتبنا السطر الأخير بالعلم، سيبقى الكوكب، وسيبقى الإنسان، وسيبقى المعنى.',
-    },
+  // الختام الشعري مقسّم إلى مقطعين بالترتيب المعتمد؛ tone يحدد الإيقاع البصري لكل سطر:
+  // lead تمهيد · oath القسَم · base عادي · strong ذروة · dark تحذير · hope أمل
+  stanzas: [
+    [
+      { tone: 'lead', text: 'وكل من يتنفس هواء هذا الكوكب…' },
+      { tone: 'oath', text: 'أنتم لا توقعون على ورق، بل على مستقبل الحياة.' },
+      {
+        tone: 'base',
+        text: 'إن الشيفرة الأساسية لنظام الأرض تحتاج إلى إعادة كتابة، وما زال في هذه الشيفرة سطرٌ لم يُكتب بعد.',
+      },
+    ],
+    [
+      { tone: 'base', text: 'نحن لا ننتظر أن تكتب الكارثة السطر الأخير.' },
+      { tone: 'strong', text: 'سنكتبه نحن.' },
+      { tone: 'base', text: 'لا بالحبر؛ بالعلم، والهندسة، والقياس، والقرار.' },
+      { tone: 'dark', text: 'إذا تعطلت الأرض، ارتجّ الكون كله.' },
+      { tone: 'dark', text: 'إذا ضاع الكوكب، ضاع الإنسان. وإذا ضاع الإنسان، ضاع المعنى.' },
+      {
+        tone: 'hope',
+        text: 'لكن إذا كتبنا السطر الأخير بالعلم، سيبقى الكوكب، وسيبقى الإنسان، وسيبقى المعنى.',
+      },
+    ],
   ],
   finalLine:
     'فلنكتب السطر الأخير لا بالحبر، بل بأشعة الشمس، بقطرات المطر، وبأصوات الغابات التي تعود للحياة.',
@@ -685,6 +690,17 @@ function buildDocumentText(format = 'txt') {
     ? [h(1, DOCUMENT_META.title), '', `**${DOCUMENT_META.motto}**`, '', divider]
     : [DOCUMENT_META.title, DOCUMENT_META.motto, divider];
 
+  CHAPTERS.forEach((chapter) => {
+    out.push('', h(2, `${chapter.id} — ${chapter.title}${chapter.en ? ` (${chapter.en})` : ''}`));
+    if (chapter.algorithm) out.push(md ? `\n*خوارزمية البقاء: ${chapter.algorithm}*` : `خوارزمية البقاء: ${chapter.algorithm}`);
+    chapter.blocks.forEach((block) => {
+      const text = blockToText(block, md);
+      if (text) out.push('', text);
+    });
+    out.push('', divider);
+  });
+
+
   out.push('', h(2, `${SUMMARY.title} (${SUMMARY.en})`), '', SUMMARY.lead, '');
   out.push(
     md
@@ -701,28 +717,23 @@ function buildDocumentText(format = 'txt') {
   });
   out.push('', divider);
 
-  CHAPTERS.forEach((chapter) => {
-    out.push('', h(2, `${chapter.id} — ${chapter.title}${chapter.en ? ` (${chapter.en})` : ''}`));
-    if (chapter.algorithm) out.push(md ? `\n*خوارزمية البقاء: ${chapter.algorithm}*` : `خوارزمية البقاء: ${chapter.algorithm}`);
-    chapter.blocks.forEach((block) => {
-      const text = blockToText(block, md);
-      if (text) out.push('', text);
-    });
-    out.push('', divider);
-  });
-
-
   const { call } = FINALE;
   out.push(
     '',
     h(2, `${FINALE.id} — ${FINALE.title}`),
     '',
-    `${call.opening} ${call.addressees.join('، ')}، ${call.tail} ${md ? `**${call.oath}**` : call.oath}`,
-    ...FINALE.crescendo.flatMap((line) => ['', md && line.tone === 'strong' ? `**${line.text}**` : line.text]),
+    `${call.opening} ${call.addressees.join('، ')}،`,
+    // كل مقطع أسطر متتالية (فاصل سطر صريح في Markdown)، ومقاطع يفصلها سطر فارغ
+    ...FINALE.stanzas.flatMap((stanza) => [
+      '',
+      stanza
+        .map((line) => (md && (line.tone === 'oath' || line.tone === 'strong') ? `**${line.text}**` : line.text))
+        .join(md ? '  \n' : '\n'),
+    ]),
     '',
-    md ? `> **${FINALE.finalLine}**` : FINALE.finalLine,
+    md ? h(3, FINALE.title) : FINALE.title,
     '',
-    md ? `*${FINALE.signature}*` : FINALE.signature,
+    md ? `**${FINALE.finalLine}**  \n*${FINALE.signature}*` : `${FINALE.finalLine}\n${FINALE.signature}`,
     '',
     divider,
     '',
@@ -1755,12 +1766,27 @@ function Chapter({ chapter }) {
   );
 }
 
-const CRESCENDO_TONES = {
+const STANZA_TONES = {
+  lead: 'text-xl text-slate-600 dark:text-slate-300 sm:text-2xl',
+  oath: 'text-2xl font-extrabold leading-relaxed text-amber-700 dark:text-amber-300 sm:text-3xl',
   base: 'text-xl text-slate-700 dark:text-slate-200 sm:text-2xl',
-  strong: 'text-3xl font-black text-slate-900 dark:text-white sm:text-5xl',
+  strong: 'py-2 text-3xl font-black text-slate-900 dark:text-white sm:text-5xl',
   dark: 'text-xl font-semibold text-red-700 dark:text-red-300 sm:text-2xl',
   hope: 'text-xl font-bold text-emerald-700 dark:text-emerald-300 sm:text-3xl',
 };
+
+// فاصل زخرفي بدل الخط العادي: خطان متلاشيان حول ثلاث معينات
+function Ornament({ className = '' }) {
+  return (
+    <div className={`flex items-center justify-center gap-3 ${className}`} aria-hidden="true">
+      <span className="h-px w-16 bg-gradient-to-r from-transparent to-amber-500/70 sm:w-24" />
+      <span className="h-1 w-1 rotate-45 bg-amber-500/60" />
+      <span className="h-2 w-2 rotate-45 bg-amber-500" />
+      <span className="h-1 w-1 rotate-45 bg-amber-500/60" />
+      <span className="h-px w-16 bg-gradient-to-l from-transparent to-amber-500/70 sm:w-24" />
+    </div>
+  );
+}
 
 function ExecutiveSummary() {
   return (
@@ -1961,7 +1987,7 @@ function Finale() {
     <section
       id={`chapter-${FINALE.id}`}
       aria-labelledby={`chapter-${FINALE.id}-title`}
-      className="scroll-mt-28 bg-gradient-to-b from-slate-100 via-sky-50 to-white py-20 dark:from-slate-950 dark:via-indigo-950 dark:to-slate-950 sm:py-28"
+      className="scroll-mt-28 border-t border-slate-200 bg-gradient-to-b from-slate-100 via-sky-50 to-white py-20 dark:border-slate-800 dark:from-slate-950 dark:via-indigo-950 dark:to-slate-950 sm:py-28"
     >
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
         <ChapterHeader id={FINALE.id} title={FINALE.title} />
@@ -1979,34 +2005,32 @@ function Finale() {
               </li>
             ))}
           </ul>
-          <p className="mt-8 font-naskh text-xl text-slate-600 dark:text-slate-300 sm:text-2xl">{call.tail}</p>
-          <p className="mx-auto mt-6 max-w-2xl rounded-2xl border-2 border-amber-400/70 bg-amber-50 px-6 py-5 text-xl font-extrabold leading-relaxed text-slate-900 dark:border-amber-500/50 dark:bg-amber-500/10 dark:text-amber-50 sm:text-3xl">
-            {call.oath}
-          </p>
         </div>
 
-        {/* التدرج الخاتمي */}
-        <div className="mt-20 space-y-8 text-center">
-          {FINALE.crescendo.map((line) => (
-            <p key={line.text} className={`font-naskh leading-loose ${CRESCENDO_TONES[line.tone]}`}>
-              {line.text}
-            </p>
+        {/* الختام الشعري: مقطعان بمسافات مريحة يفصل بينهما فاصل زخرفي */}
+        <div className="mt-16 text-center">
+          {FINALE.stanzas.map((stanza, i) => (
+            <Fragment key={i}>
+              {i > 0 && <Ornament className="my-14" />}
+              <div className="space-y-5">
+                {stanza.map((line) => (
+                  <p key={line.text} className={`font-naskh leading-loose ${STANZA_TONES[line.tone]}`}>
+                    {line.text}
+                  </p>
+                ))}
+              </div>
+            </Fragment>
           ))}
         </div>
 
-        {/* السطر الأخير: العنوان، ثم السطر، ثم فاصل، ثم التوقيع — دون عناصر إضافية */}
-        <div className="mx-auto mt-24 max-w-3xl text-center">
-          <div className="mx-auto mb-10 h-px w-48 bg-gradient-to-l from-transparent via-amber-500 to-transparent" />
-          <p className="text-xs font-bold tracking-[0.4em] text-amber-600 dark:text-amber-400">السطر الأخير</p>
-          <p className="mt-6 bg-gradient-to-l from-amber-600 via-sky-600 to-emerald-600 bg-clip-text text-2xl font-black leading-[1.9] text-transparent print:bg-none print:text-emerald-800 dark:from-amber-300 dark:via-sky-300 dark:to-emerald-300 sm:text-4xl sm:leading-[1.8]">
+        {/* السطر الأخير: فاصل زخرفي، ثم العنوان، ثم السطر الأخير يليه التوقيع مباشرة */}
+        <div className="mx-auto mt-20 max-w-3xl text-center">
+          <Ornament />
+          <h3 className="mt-10 text-sm font-bold tracking-[0.4em] text-amber-600 dark:text-amber-400">{FINALE.title}</h3>
+          <p className="mt-8 bg-gradient-to-l from-amber-600 via-sky-600 to-emerald-600 bg-clip-text text-2xl font-black leading-[1.9] text-transparent print:bg-none print:text-emerald-800 dark:from-amber-300 dark:via-sky-300 dark:to-emerald-300 sm:text-4xl sm:leading-[1.8]">
             {FINALE.finalLine}
           </p>
-          <div className="mx-auto mt-12 flex items-center justify-center gap-3" aria-hidden="true">
-            <span className="h-px w-12 bg-slate-300 dark:bg-slate-700" />
-            <span className="h-1.5 w-1.5 rotate-45 bg-amber-500" />
-            <span className="h-px w-12 bg-slate-300 dark:bg-slate-700" />
-          </div>
-          <p className="mt-8 font-naskh text-lg italic leading-loose text-slate-600 dark:text-slate-300 sm:text-2xl">
+          <p className="mt-6 font-naskh text-lg italic leading-loose text-slate-600 dark:text-slate-300 sm:text-2xl">
             {FINALE.signature}
           </p>
         </div>
@@ -2142,8 +2166,6 @@ function chapterPoints(chapter) {
 
 const SLIDES = [
   { kind: 'cover' },
-  { kind: 'summary-stats' },
-  { kind: 'summary-pillars' },
   ...CHAPTERS.map((chapter) => ({
     kind: 'chapter',
     chapter,
@@ -2151,6 +2173,8 @@ const SLIDES = [
     points: chapterPoints(chapter),
     stat: chapter.blocks.find((b) => b.type === 'stat'),
   })),
+  { kind: 'summary-stats' },
+  { kind: 'summary-pillars' },
   { kind: 'call' },
   { kind: 'final' },
   { kind: 'credits' },
@@ -2261,8 +2285,8 @@ function SlideContent({ slide }) {
               </span>
             ))}
           </div>
-          <p className="mt-8 text-xl text-slate-300 sm:text-2xl">{FINALE.call.tail}</p>
-          <p className="mt-6 text-2xl font-black leading-relaxed text-amber-200 sm:text-4xl">{FINALE.call.oath}</p>
+          <p className="mt-8 text-xl text-slate-300 sm:text-2xl">{FINALE.stanzas[0][0].text}</p>
+          <p className="mt-6 text-2xl font-black leading-relaxed text-amber-200 sm:text-4xl">{FINALE.stanzas[0][1].text}</p>
         </div>
       );
     case 'final':
@@ -2617,8 +2641,8 @@ function readStoredTheme() {
   }
 }
 
-// الأقسام بترتيب ظهورها في الوثيقة: الخلاصة، ثم الفصول 01–11، ثم التوثيق
-const DOC_ORDER = ['#summary', ...CHAPTERS.map((c) => `#chapter-${c.id}`), `#chapter-${FINALE.id}`, '#credits'];
+// الأقسام بترتيب ظهورها في الوثيقة: الفصول 01–10، ثم الخلاصة، ثم الفصل 11، ثم التوثيق
+const DOC_ORDER = [...CHAPTERS.map((c) => `#chapter-${c.id}`), '#summary', `#chapter-${FINALE.id}`, '#credits'];
 const SECTIONS_IN_ORDER = DOC_ORDER.map((href) => NAV_ITEMS.find((item) => item.href === href));
 
 // ينقل إلى عنوان القسم مباشرة تحت الشريط العلوي (بدل بداية القسم وحشوته العلوية)،
@@ -3009,15 +3033,15 @@ export default function PlanetarySurvivalDocument() {
           </div>
         </header>
 
-        {/* الخلاصة التنفيذية: في مقدمة الوثيقة كما هو معتاد أكاديمياً، فلا تقطع تسلسل الفصول */}
-        <ExecutiveSummary />
-
         {/* الفصول 01–10 */}
         <main className="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-4xl">
           {CHAPTERS.map((chapter) => (
             <Chapter key={chapter.id} chapter={chapter} />
           ))}
         </main>
+
+        {/* الخلاصة التنفيذية: قبل الفصل 11، قسم مستقل بخلفيته وحدوده عن الختام الشعري */}
+        <ExecutiveSummary />
 
         {/* الفصل 11 — الخاتمة والسطر الأخير: آخر فصول المحتوى */}
         <Finale />
