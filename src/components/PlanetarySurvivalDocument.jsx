@@ -81,19 +81,33 @@ const DASHBOARD = [
   },
 ];
 
+// التشخيص: المشكلة وسببها الجذر، قبل الفصل 01
+const DIAGNOSIS = {
+  title: 'التشخيص',
+  subtitle: 'المشكلة وجذرها',
+  items: [
+    {
+      label: 'المشكلة',
+      title: 'الموت المناخي وشلل الكوكب',
+      text: 'التغير المناخي ليس مجرد خلل في الطقس، بل هو سكرة احتضار خوارزمية لتوازنات الأرض. نحن لا نواجه مجرد ارتفاع في درجات الحرارة، بل نواجه موتاً بطيئاً وجفافاً لشرايين الحياة، حيث تختنق الرئة الكوكبية وتتجلط البحار تحت رماد خطايانا.',
+    },
+    {
+      label: 'السبب الجذر',
+      title: 'العمى الجشع والانفصال الحضاري',
+      text: 'الشرود الحضاري والعمى الاقتصادي الخطي — نمط إنتاجي يحرق المستقبَل ليدفئ الحاضر، ويستنزف أحشاء الأرض دون أن يدفع ثمن دمائها، مجرداً الاقتصاد من أي ضمير بيئي أو حساب للمصير.',
+    },
+  ],
+};
+
 const CHAPTERS = [
   {
     id: '01',
     title: 'إنذار النظام',
+    subtitle: 'زفرات احتضار الكوكب',
     blocks: [
       {
-        type: 'drum',
-        word: 'قفوا…',
-        lines: ['الأرض تصرخ.', 'القلب يختنق.', 'الشبكة الكونية ترتجف.'],
-      },
-      {
-        type: 'p',
-        text: 'وإذا توقف القلب، سيتوقف كل شيء؛ وإذا لم نُعد كتابة البرمجيات الحيوية المعتمدة عليه الآن، فسيتوقف نظام التشغيل عن الاستجابة، وتنهار دفقات الحياة المعتمدة عليه.',
+        type: 'lead',
+        text: 'أنصتوا إلى أنين المدى… الأرض لا تحتضر صامتة، بل تصرخ من وجع الاختناق! كل جُزء يُضاف من حرارة السطح (+1.43°C ±0.13°C) ليس مجرد رقم في نشرة علمية، بل هو سكرة موت تُصيب رئة الغابات، ونبضة تتوقف في قلب المحيطات. إن لم نُعد كتابة شفرة البقاء الآن، سنموت كمداً وتتحول حضارتنا إلى أثر بعد عين.',
       },
       {
         type: 'stat',
@@ -115,11 +129,12 @@ const CHAPTERS = [
   {
     id: '02',
     title: 'لماذا لا تكفي الحلول الجزئية؟',
+    subtitle: 'وهم التسكين أمام الموت',
     algorithm: 'نقيس لننقذ.',
     blocks: [
       {
-        type: 'p',
-        text: 'الحلول الجزئية أو الإجراءات الفردية الترقيعية لن تكون كافية أمام مشكلة تعمل على مستوى منظومة الكوكب بأكمله:',
+        type: 'lead',
+        text: 'الحلول الترقيعية كمن يداوي الجرح الغائر بالكلمات. النقل وحده يقذف 23% من سموم الطاقة في فضاء الكوكب. إن خفض الانبعاثات بنسبة 43% بحلول 2030 ليس خياراً سياسياً، بل هو حبل النجاة الأخير قبل أن نفقد أكثر من 99% من الشعاب المرجانية عند عتبة 2°C.',
       },
       {
         type: 'bullets',
@@ -147,31 +162,56 @@ const CHAPTERS = [
   {
     id: '03',
     title: 'مبدأ التصميم والفرضية الهندسية',
+    subtitle: 'العقل يسوس المادة',
     algorithm: 'نزرع لنحيا.',
     blocks: [
+      {
+        type: 'lead',
+        text: 'لا نعبد التقنية لمجرد بريقها، بل نسخرها عندما تكون درعاً يقاس، وسيفاً يحاسب. الفرضية الهندسية ليست حلاً مفرداً، بل سيمفونية متعددة الطبقات تدمج كبح السموم، واستعادة روح الطبيعة، وتأطير الكوكب بأعصاب ديجيتالية حية.',
+      },
       { type: 'label', text: 'المبدأ المركزي للوثيقة' },
       {
         type: 'principle',
         text: 'لا نعتمد على تقنية لمجرد أنها مذهلة؛ نعتمد عليها عندما تكون قابلة للقياس، قابلة للتوسع، وقابلة للمحاسبة.',
-      },
-      { type: 'label', text: 'الفرضية الهندسية' },
-      {
-        type: 'p',
-        text: 'لا يوجد حل منفرد قادر على معالجة الأزمة المناخية. تقترح الوثيقة بنية متعددة الطبقات لحماية الكوكب: فنخفض مصادر الانبعاث أولاً، ثم نتعامل مع الانبعاثات المتبقية عبر التكنولوجيا، ثم نستعيد الأنظمة البيئية الحيوية، بينما تعمل البيانات، الحوكمة، والتمويل كـ **«طبقة عصبية كوكبية»** تغذي المنظومة بأكملها توجهاً وتنسيقاً.',
       },
     ],
   },
   {
     id: '04',
     title: 'المعمارية الكوكبية للنظام',
+    subtitle: 'الجهاز العصبي للأرض',
     algorithm: 'البنية المتكاملة هي وحدها القادرة على امتصاص الصدمات الكوكبية.',
-    blocks: [{ type: 'architecture' }],
+    blocks: [
+      {
+        type: 'lead',
+        text: 'مخطط الطبقة العصبية الكوكبية: الذكاء الاصطناعي • إنترنت الأشياء • الأقمار الصناعية • العقود الذكية • إطار MRV. شبكة عصبية ترصد نبض الطاقة والصناعة والنقل لتغذي شرايين الاستعادة البيئية.',
+      },
+      { type: 'architecture' },
+    ],
   },
   {
     id: '05',
     title: 'هرم الجاهزية والأركان التكنولوجية',
+    subtitle: 'دروع النجاة الثلاثة',
     algorithm: 'نكتب لنفتح عهدًا جديدًا.',
     blocks: [
+      {
+        type: 'bullets',
+        items: [
+          {
+            label: 'المستوى A (الحلول الجاهزة)',
+            text: 'الشبكة الذكية للطاقة النظيفة (CEIG) التي توازن الأحمال قبل أن تثور الشبكات.',
+          },
+          {
+            label: 'المستوى B (الحلول الناشئة)',
+            text: 'أبراج الهواء النقي الحضرية التي تتنفس الملوثات وتفرز الحياة، والروبوتات الطائرة التي تزرع أمل الغابات.',
+          },
+          {
+            label: 'المستوى C (الحلول التجريبية)',
+            text: 'شبكات المحيطات الذكية (Ocean-Net)، وإعادة بناء الهياكل بالكربون المحتجز بتقنيات النانو.',
+          },
+        ],
+      },
       {
         type: 'p',
         text: 'تم تصنيف التقنيات بحسب مستويات الجاهزية التكنولوجية (TRL) لضمان تمييز الحلول المتاحة اليوم عن التقنيات الناشئة والتجريبية. ويخضع كل ركن لاختبار قابلية البقاء (**Survival Test**) عبر ستة محاور: الأثر - الطاقة - المياه - التكلفة - السلامة - قابلية التوسع.',
@@ -264,13 +304,58 @@ const CHAPTERS = [
   },
   {
     id: '06',
-    title: 'نظام القياس والإبلاغ والتحقق والتدقيق',
+    title: 'بروتوكول الردع الآلي واستنزاف الجشع',
+    en: 'Instant Bio-Debt Protocol',
+    innovation: true,
+    algorithm: 'نقيس لننقذ.',
+    blocks: [
+      {
+        type: 'lead',
+        text: 'بروتوكول الدين الحيوي الآلي (Instant Bio-Debt Protocol): عين الذكاء الاصطناعي لا تنام؛ ترصد انبعاثات كل مصنع لحظة بلحظة عبر الأقمار والأجهزة الذكية. وعند تجاوز الحدود المسموحة، لا ننتظر المحاكم، بل تُفرض ضريبة كربونية فورية تُقتطع آلياً عبر عقود ذكية وتُضخ فوراً في شبكة المحافظ المالية لـ «صندوق البقاء الكوكبي».',
+      },
+      {
+        type: 'flow',
+        steps: [
+          { en: 'Monitor', ar: 'رصد لحظي' },
+          { en: 'Detect', ar: 'كشف التجاوز' },
+          { en: 'Charge', ar: 'اقتطاع آلي' },
+          { en: 'Fund', ar: 'صندوق البقاء' },
+        ],
+      },
+    ],
+  },
+  {
+    id: '07',
+    title: 'التوأمة الرقمية وإثبات الاستعادة الميداني',
+    en: 'Planetary Digital Twin · Proof of Restoration',
+    innovation: true,
+    algorithm: 'نزرع لنحيا.',
+    blocks: [
+      {
+        type: 'bullets',
+        items: [
+          {
+            label: 'التوأمة الرقمية للكوكب (Planetary Digital Twin)',
+            text: 'عقل رقمي يستبق الكوارث المناخية قبل 90 يوماً لينقذ الأرواح.',
+          },
+          {
+            label: 'بروتوكول إثبات الاستعادة (Proof of Restoration)',
+            text: 'لا شراء لشهادات التحييد الزائفة؛ كل دينار بيئي يُدفع يجب أن يثبُت بالأقمار الصناعية أنه أنبت شجرة حقيقية أو أحيا مواتاً في القاع.',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: '08',
+    title: 'نظام القياس والتدقيق (MRV)',
+    subtitle: 'ميزان الحق والعدل',
     en: 'MRV & Audit Layer',
     algorithm: 'نقيس لننقذ.',
     blocks: [
       {
-        type: 'p',
-        text: 'لن تعتمد الوثيقة على تقديرات غير موثوقة؛ بل على إطار صارم يقوم على أربع مراحل أساسية:',
+        type: 'lead',
+        text: 'قياس ← إبلاغ ← تحقق ← تدقيق. لا مكان للتزوير البيئي؛ الحقيقة العارية هي وحدها ما يُعتمد في سجلات البقاء.',
       },
       {
         type: 'flow',
@@ -309,13 +394,14 @@ const CHAPTERS = [
     ],
   },
   {
-    id: '07',
-    title: 'اقتصاد البقاء: التمويل والحوافز',
+    id: '09',
+    title: 'اقتصاد البقاء',
+    subtitle: 'تحويل ثمن الجريمة إلى شريان حياة',
     algorithm: 'نزرع لنحيا.',
     blocks: [
       {
-        type: 'p',
-        text: 'تتحول الوثيقة من مجرد كلفة بيئية إلى فرصة استثمارية هيكلية:',
+        type: 'lead',
+        text: 'تسعير الكربون الذي حشد أكثر من 107 مليارات دولار عام 2025، وضخّ الغرامات التلقائية التي يقتطعها بروتوكول الدين الحيوي من المصانع الملوثة، ليتحول المال السام إلى بذور نانوية، وأبراج تنقية، وسندات خضراء تحمي المستقبل.',
       },
       {
         type: 'bullets',
@@ -346,8 +432,9 @@ const CHAPTERS = [
     ],
   },
   {
-    id: '08',
-    title: 'خارطة التنفيذ وبوابات القرار',
+    id: '10',
+    title: 'خارطة التنفيذ الزمني',
+    subtitle: 'محطات العودة من الهاوية',
     en: 'Stage-Gate Framework',
     algorithm: 'نكتب لنفتح عهدًا جديدًا.',
     blocks: [
@@ -361,6 +448,7 @@ const CHAPTERS = [
             years: '2027-2030',
             en: 'Pilot',
             ar: 'اختبار',
+            motto: 'زراعة البذور واختبار الأنظمة',
             text: 'اختبار التجارب الحقلية، بناء البنية الرقمية، تطوير أنظمة MRV، وإطلاق مشاريع المدن والشبكات التجريبية.',
             gate: {
               name: 'بوابة القرار 1',
@@ -372,6 +460,7 @@ const CHAPTERS = [
             years: '2030-2040',
             en: 'Scale',
             ar: 'توسيع',
+            motto: 'التوسع والسيادة الرقمية',
             text: 'التوسيع الصناعي والإقليمي في الشبكات الذكية، تطبيقات الاستعادة البيئية، وأنظمة الكربون الموحدة.',
             gate: {
               name: 'بوابة القرار 2',
@@ -383,6 +472,7 @@ const CHAPTERS = [
             years: '2040-2050',
             en: 'Integrate',
             ar: 'دمج',
+            motto: 'بلوغ الحياد الصفري واستعادة توازن الأرض',
             text: 'دمج الأنظمة على نطاق كوكبي عابر للحدود وتوسيع التقنيات التي أثبتت فعاليتها للوصول إلى الحياد الصفري.',
           },
         ],
@@ -390,10 +480,14 @@ const CHAPTERS = [
     ],
   },
   {
-    id: '09',
-    title: 'المخاطر، حدود الخوارزمية، والحوكمة',
+    id: '11',
+    title: 'صمامات الأمان وثبات البوصلة',
     algorithm: 'نقيس لننقذ.',
     blocks: [
+      {
+        type: 'lead',
+        text: 'لا تقنية بلا اختبار، ولا ذكاء بلا حكمة بشرية، ولا استثناء أو حصانة لأي مصنع أو دولة من قيد الضريبة الآلية. المؤشرات الحية هي العهد بيننا وبين الأرض.',
+      },
       { type: 'heading', text: 'حدود الخوارزمية — ما الذي لن تفعله الوثيقة؟' },
       {
         type: 'limits',
@@ -431,22 +525,17 @@ const CHAPTERS = [
           },
         ],
       },
+      { type: 'heading', text: 'المؤشرات الحية — لوحة القيادة الكوكبية' },
+      { type: 'dashboard' },
     ],
-  },
-  {
-    id: '10',
-    title: 'لوحة القيادة الكوكبية',
-    en: 'Planetary Dashboard',
-    algorithm: 'نزرع لنحيا.',
-    blocks: [{ type: 'dashboard' }],
   },
 ];
 
 const FINALE = {
-  id: '11',
+  id: '12',
   title: 'السطر الأخير',
   call: {
-    opening: 'قفوا… أنصتوا جميعاً:',
+    opening: 'قفوا… أنصتوا جميعًا:',
     addressees: [
       'أيها القادة',
       'أيها المستثمرون',
@@ -489,20 +578,9 @@ const FINALE = {
 const CREDITS = {
   title: 'التوثيق والحقوق',
   people: [
-    {
-      role: 'إعداد وتطوير',
-      name: 'الطالب رضا أحمد يوسف',
-      detail: 'الصف الثاني الإعدادي — برنامج السنوات المتوسطة MYP',
-    },
-    {
-      role: 'تحت إشراف ومراجعة',
-      name: 'أستاذ حسن معيوف',
-      detail: 'معلم مادة الأفراد والمجتمعات',
-    },
-    {
-      role: 'المؤسسة',
-      name: 'مدرسة الميثاق الإعدادية للبنين',
-    },
+    { role: 'إعداد الطالب', name: 'رضا أحمد يوسف', detail: 'الصف الثاني الإعدادي' },
+    { role: 'إشراف', name: 'أستاذ حسن معيوف' },
+    { role: 'المؤسسة', name: 'مدرسة الميثاق الإعدادية للبنين', detail: 'برنامج MYP\u00a0A' },
   ],
   copyright:
     '© 2026-2027 جميع الحقوق محفوظة ضمن متطلبات مشاريع مادة الأفراد والمجتمعات (MYP\u00a0A).', // مسافة غير قابلة للكسر تُبقي «MYP A» في سطر واحد
@@ -510,7 +588,7 @@ const CREDITS = {
     'هذه الوثيقة الرقمية وخوارزميات البقاء الكوكبي ثمرة جهد أكاديمي وفكري، ويُحفظ العمل بالكامل باسم المعد وتحت إشراف معلم المادة.',
 };
 
-// الخلاصة التنفيذية: إيجاز لركائز الوثيقة، مستمد من نصوص الفصول 01–10
+// الخلاصة التنفيذية: إيجاز لركائز الوثيقة، مستمد من نصوص الفصول 01–11
 const SUMMARY = {
   title: 'الخلاصة التنفيذية',
   en: 'Executive Summary',
@@ -534,7 +612,7 @@ const SUMMARY = {
     {
       icon: '⟨⟩',
       title: 'خوارزميات البقاء',
-      chapters: '02–10',
+      chapters: '02–11',
       points: ['نقيس لننقذ.', 'نزرع لنحيا.', 'نكتب لنفتح عهدًا جديدًا.'],
     },
     {
@@ -549,9 +627,19 @@ const SUMMARY = {
       ],
     },
     {
+      icon: '★',
+      title: 'الحلول المبتكرة',
+      chapters: '06–07',
+      points: [
+        'بروتوكول الدين الحيوي الآلي: رصد لحظي وضريبة كربونية فورية عبر عقود ذكية.',
+        'التوأمة الرقمية للكوكب: استباق الكوارث المناخية قبل 90 يوماً.',
+        'إثبات الاستعادة: لا يُعتمد إلا ما تثبته الأقمار الصناعية على الأرض.',
+      ],
+    },
+    {
       icon: '✓',
       title: 'إطار MRV والتدقيق',
-      chapters: '06',
+      chapters: '08',
       points: [
         'قياس ← إبلاغ ← تحقق ← تدقيق مستقل.',
         'لا يُسجَّل في سجل الإنجاز إلا ما قيس وأُبلغ عنه وتُحقق منه ودُقّق.',
@@ -560,7 +648,7 @@ const SUMMARY = {
     {
       icon: '⟶',
       title: 'التنفيذ والحوكمة',
-      chapters: '07–09',
+      chapters: '09–11',
       points: [
         'اختبار (2027–2030) ← توسيع (2030–2040) ← دمج (2040–2050)، عبر بوابتَي قرار.',
         'تمويل من عوائد تسعير الكربون والسندات الخضراء والشراكات.',
@@ -571,7 +659,8 @@ const SUMMARY = {
 };
 
 const NAV_ITEMS = [
-  // الخلاصة أولاً: تظهر في أول الفهرس على شاشة الهاتف دون تمرير جانبي
+  // التشخيص والخلاصة أولاً: يظهران في أول الفهرس على شاشة الهاتف دون تمرير جانبي
+  { href: '#diagnosis', num: '⚑', title: DIAGNOSIS.title, tone: 'summary' },
   { href: '#summary', num: '◆', title: SUMMARY.title, tone: 'summary' },
   ...CHAPTERS.map((c) => ({ href: `#chapter-${c.id}`, num: c.id, title: c.title })),
   { href: `#chapter-${FINALE.id}`, num: FINALE.id, title: FINALE.title, tone: 'finale' },
@@ -604,10 +693,7 @@ function blockToText(block, md = false) {
   const fmt = md ? toSubscripts : stripMarks; // Markdown يحتفظ بالغامق **…**
   const bold = (t) => (md ? `**${t}**` : t);
   switch (block.type) {
-    case 'drum':
-      return md
-        ? block.lines.map((l) => `**${block.word}** ${l}`).join('  \n')
-        : `«${block.lines.map((l) => `${block.word} ${l}`).join(' ')}»`;
+    case 'lead':
     case 'p':
       return fmt(block.text);
     case 'stat':
@@ -664,7 +750,7 @@ function blockToText(block, md = false) {
       return [
         md ? `\`\`\`text\n${block.ascii}\n\`\`\`\n` : block.ascii,
         ...block.phases.flatMap((ph) => [
-          `${md ? '-' : '•'} ${bold(`${ph.name} (${ph.years}) — ${ph.en} (${ph.ar}):`)} ${ph.text}`,
+          `${md ? '-' : '•'} ${bold(`${ph.name} (${ph.years}) — ${ph.motto}:`)} ${ph.text}`,
           ...(ph.gate ? [`   ${md ? '- ' : ''}⟐ ${bold(`${ph.gate.name}:`)} ${ph.gate.text}`] : []),
         ]),
       ].join('\n');
@@ -690,8 +776,15 @@ function buildDocumentText(format = 'txt') {
     ? [h(1, DOCUMENT_META.title), '', `**${DOCUMENT_META.motto}**`, '', divider]
     : [DOCUMENT_META.title, DOCUMENT_META.motto, divider];
 
+  out.push('', h(2, `${DIAGNOSIS.title}: ${DIAGNOSIS.subtitle}`));
+  DIAGNOSIS.items.forEach((item) => {
+    out.push('', md ? `**${item.label}: ${item.title}**` : `${item.label}: ${item.title}`, md ? `> «${item.text}»` : `«${item.text}»`);
+  });
+  out.push('', divider);
+
   CHAPTERS.forEach((chapter) => {
-    out.push('', h(2, `${chapter.id} — ${chapter.title}${chapter.en ? ` (${chapter.en})` : ''}`));
+    out.push('', h(2, `${chapter.id} — ${chapter.title}${chapter.subtitle ? `: ${chapter.subtitle}` : ''}${chapter.en ? ` (${chapter.en})` : ''}`));
+    if (chapter.innovation) out.push(md ? '\n*★ حل مبتكر — مقترح الوثيقة*' : '★ حل مبتكر — مقترح الوثيقة');
     if (chapter.algorithm) out.push(md ? `\n*خوارزمية البقاء: ${chapter.algorithm}*` : `خوارزمية البقاء: ${chapter.algorithm}`);
     chapter.blocks.forEach((block) => {
       const text = blockToText(block, md);
@@ -790,6 +883,7 @@ async function copyToClipboard(text) {
 // كـ«أرقام عربية» في خوارزمية الاتجاه (Unicode Bidi)، فتنفصل عنها الوحدة أو ينعكس النطاق:
 // «1.5°C» كانت تظهر «C°1.5»، و«1850–1900» كانت تظهر «1900–1850».
 const LTR_UNITS = [
+  '\\([±+]?\\d+(?:\\.\\d+)?°C [±+]?\\d+(?:\\.\\d+)?°C\\)', // قراءة مع هامشها: (+1.43°C ±0.13°C)
   '[±+]?\\d+(?:\\.\\d+)?°C', // درجات الحرارة: 1.5°C، ±0.13°C، +1.43°C
   '\\d+(?:\\.\\d+)?[–-]\\d+(?:\\.\\d+)?', // النطاقات: 1850–1900، 01–02، 2026-2027
 ];
@@ -808,8 +902,9 @@ function Inline({ text }) {
     }
     if (part.startsWith('_{')) return <sub key={i}>{part.slice(2, -1)}</sub>;
     if (LTR_UNIT.test(part)) {
+      // whitespace-nowrap: لا تنقسم الوحدة الرقمية بين سطرين على الهاتف
       return (
-        <bdi key={i} dir="ltr">
+        <bdi key={i} dir="ltr" className="whitespace-nowrap">
           {part}
         </bdi>
       );
@@ -1253,16 +1348,12 @@ function ShareMenu({ notify }) {
 /*  مكونات الكتل                                                       */
 /* ------------------------------------------------------------------ */
 
-function Drum({ word, lines }) {
+// الافتتاحية البلاغية للفصل: نص أكبر بإطار جانبي متدرّج
+function Lead({ text }) {
   return (
-    <div className="my-8 space-y-2 border-r-4 border-red-500 pr-5 sm:pr-7">
-      {lines.map((line) => (
-        <p key={line} className="text-2xl font-black leading-snug sm:text-4xl">
-          <span className="text-red-600 dark:text-red-400">{word}</span>{' '}
-          <span className="text-slate-900 dark:text-white">{line}</span>
-        </p>
-      ))}
-    </div>
+    <p className="relative my-8 border-r-4 border-emerald-500 bg-gradient-to-l from-emerald-50/80 to-transparent py-2 pr-5 font-naskh text-xl font-semibold leading-[2.1] text-slate-800 dark:border-emerald-400 dark:from-emerald-500/10 dark:text-slate-100 sm:pr-7 sm:text-2xl sm:leading-[2.1]">
+      <Inline text={text} />
+    </p>
   );
 }
 
@@ -1612,6 +1703,9 @@ function Timeline({ phases }) {
               <span className="text-sm text-slate-500 dark:text-slate-400">({phase.ar})</span>
             </div>
             <p className="mt-2 font-bold text-slate-900 dark:text-white">{phase.name}</p>
+            {phase.motto && (
+              <p className="mt-1 text-base font-extrabold text-emerald-700 dark:text-emerald-400 sm:text-lg">{phase.motto}</p>
+            )}
             <p className="mt-1 font-naskh text-base leading-loose text-slate-700 dark:text-slate-300 sm:text-lg">
               {phase.text}
             </p>
@@ -1707,7 +1801,7 @@ function PlanetaryDashboard() {
 }
 
 const BLOCKS = {
-  drum: Drum,
+  lead: Lead,
   p: Paragraph,
   stat: Stat,
   hammer: Hammer,
@@ -1725,7 +1819,7 @@ const BLOCKS = {
   dashboard: PlanetaryDashboard,
 };
 
-function ChapterHeader({ id, title, en }) {
+function ChapterHeader({ id, title, subtitle, en, innovation }) {
   return (
     <header className="mb-8 flex items-start gap-4 sm:gap-6">
       <span
@@ -1739,6 +1833,14 @@ function ChapterHeader({ id, title, en }) {
         <h2 id={`chapter-${id}-title`} className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-white sm:text-4xl">
           {title}
         </h2>
+        {subtitle && (
+          <p className="mt-2 text-lg font-bold text-emerald-700 dark:text-emerald-400 sm:text-xl">{subtitle}</p>
+        )}
+        {innovation && (
+          <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800 ring-1 ring-amber-300 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-500/40">
+            <span aria-hidden="true">★</span> حل مبتكر — مقترح الوثيقة
+          </p>
+        )}
         {en && (
           <p dir="ltr" className="mt-2 text-end font-mono text-sm text-slate-500 dark:text-slate-400">
             {en}
@@ -1756,7 +1858,7 @@ function Chapter({ chapter }) {
       aria-labelledby={`chapter-${chapter.id}-title`}
       className="scroll-mt-28 border-b border-slate-200 py-14 dark:border-slate-800 sm:py-20"
     >
-      <ChapterHeader id={chapter.id} title={chapter.title} en={chapter.en} />
+      <ChapterHeader {...chapter} />
       {chapter.algorithm && <SurvivalAlgorithm text={chapter.algorithm} />}
       {chapter.blocks.map((block, i) => {
         const Block = BLOCKS[block.type];
@@ -1937,6 +2039,58 @@ function PrintCoverCredits() {
   );
 }
 
+// التشخيص: المشكلة وسببها الجذر في بطاقتين متقابلتين
+function Diagnosis() {
+  return (
+    <section
+      id="diagnosis"
+      aria-labelledby="diagnosis-title"
+      className="scroll-mt-28 border-b border-slate-200 bg-slate-50 py-16 dark:border-slate-800 dark:bg-slate-900/40 sm:py-20"
+    >
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
+        <header className="text-center">
+          <p className="text-xs font-bold tracking-[0.35em] text-red-600 dark:text-red-400">⚑ التشخيص البلاغي والهندسي</p>
+          <h2 id="diagnosis-title" className="mt-3 text-3xl font-black text-slate-900 dark:text-white sm:text-5xl">
+            {DIAGNOSIS.title}: {DIAGNOSIS.subtitle}
+          </h2>
+        </header>
+        <div className="mt-10 grid gap-5 md:grid-cols-2">
+          {DIAGNOSIS.items.map((item, i) => (
+            <article
+              key={item.label}
+              className={`rounded-2xl border-2 bg-white p-6 dark:bg-slate-900 sm:p-8 ${
+                i === 0 ? 'border-red-300 dark:border-red-500/40' : 'border-amber-300 dark:border-amber-500/40'
+              }`}
+            >
+              <p className={`text-xs font-bold tracking-widest ${i === 0 ? 'text-red-600 dark:text-red-400' : 'text-amber-700 dark:text-amber-400'}`}>
+                {item.label}
+              </p>
+              <h3 className="mt-2 text-xl font-extrabold text-slate-900 dark:text-white sm:text-2xl">{item.title}</h3>
+              <p className="mt-4 font-naskh text-lg leading-[2.1] text-slate-700 dark:text-slate-300 sm:text-xl">«{item.text}»</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// خط فاصل متوهج (نيون) بين الأرقام والخاتمة العاطفية: زمرد ← سماء مع نقطة ضوء مركزية
+function NeonDivider() {
+  return (
+    <div aria-hidden="true" className="psd-neon relative flex items-center justify-center bg-white py-12 dark:bg-slate-950 sm:py-16">
+      <div
+        className="h-0.5 w-11/12 max-w-3xl rounded-full"
+        style={{
+          background: 'linear-gradient(90deg, transparent, #34d399 25%, #38bdf8 75%, transparent)',
+          boxShadow: '0 0 12px 1px rgba(52, 211, 153, 0.55), 0 0 28px 4px rgba(56, 189, 248, 0.35)',
+        }}
+      />
+      <span className="psd-neon-dot absolute h-3.5 w-3.5 rounded-full bg-white ring-2 ring-sky-300 dark:ring-emerald-300" />
+    </div>
+  );
+}
+
 function Credits() {
   return (
     <section
@@ -1987,7 +2141,7 @@ function Finale() {
     <section
       id={`chapter-${FINALE.id}`}
       aria-labelledby={`chapter-${FINALE.id}-title`}
-      className="scroll-mt-28 border-t border-slate-200 bg-gradient-to-b from-slate-100 via-sky-50 to-white py-20 dark:border-slate-800 dark:from-slate-950 dark:via-indigo-950 dark:to-slate-950 sm:py-28"
+      className="scroll-mt-28 bg-gradient-to-b from-white via-sky-50 to-white pb-20 pt-6 dark:from-slate-950 dark:via-indigo-950 dark:to-slate-950 sm:pb-28 sm:pt-10"
     >
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
         <ChapterHeader id={FINALE.id} title={FINALE.title} />
@@ -2127,12 +2281,13 @@ function PrintButton({ notify }) {
 
 /* ---------------------------- العرض التقديمي ---------------------------- */
 
-// أبرز جملة في الفصل: أول مطرقة أو مبدأ، وإلا سطور «قفوا…»
+// أبرز جملة في الفصل: أول مطرقة أو مبدأ، وإلا الجملة الأولى من الافتتاحية
 function chapterHighlight(chapter) {
   const quote = chapter.blocks.find((b) => b.type === 'hammer' || b.type === 'principle');
   if (quote) return quote.text;
-  const drum = chapter.blocks.find((b) => b.type === 'drum');
-  return drum ? drum.lines.map((l) => `${drum.word} ${l}`).join(' ') : null;
+  const lead = chapter.blocks.find((b) => b.type === 'lead');
+  // بدون lookbehind في التعبير النمطي: غير مدعوم في Safari الأقدم من 16.4 ويُسقط الصفحة كلها
+  return lead ? (lead.text.match(/^.*?[.!؛](?=\s|$)/)?.[0] ?? lead.text) : null;
 }
 
 // نقاط موجزة من كتل الفصل (بحد أقصى 5)
@@ -2150,7 +2305,7 @@ function chapterPoints(chapter) {
       case 'flow':
         return [b.steps.map((st) => st.ar).join(' ← ')];
       case 'timeline':
-        return b.phases.map((ph) => `${ph.years} — ${ph.en} (${ph.ar})`);
+        return b.phases.map((ph) => `${ph.years} — ${ph.motto}`);
       case 'dashboard':
         return DASHBOARD.map((row) => row.sector);
       case 'architecture':
@@ -2166,6 +2321,7 @@ function chapterPoints(chapter) {
 
 const SLIDES = [
   { kind: 'cover' },
+  { kind: 'diagnosis' },
   ...CHAPTERS.map((chapter) => ({
     kind: 'chapter',
     chapter,
@@ -2238,6 +2394,23 @@ function SlideContent({ slide }) {
         </div>
       );
     }
+    case 'diagnosis':
+      return (
+        <div className="w-full max-w-5xl">
+          <h2 className="text-center text-3xl font-black text-white sm:text-5xl">
+            {DIAGNOSIS.title}: {DIAGNOSIS.subtitle}
+          </h2>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+            {DIAGNOSIS.items.map((item) => (
+              <div key={item.label} className="rounded-2xl bg-white/5 p-6">
+                <p className="text-sm font-bold text-red-300">{item.label}</p>
+                <p className="mt-1 text-2xl font-extrabold text-white">{item.title}</p>
+                <p className="mt-4 text-base leading-loose text-slate-300 sm:text-lg">{item.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
     case 'summary-stats':
       return (
         <div className="w-full max-w-5xl text-center">
@@ -2459,7 +2632,7 @@ function normalizeForSearch(text) {
   return { normalized, offsets };
 }
 
-const SECTION_SELECTOR = 'article[id^="chapter-"], section[id^="chapter-"], #summary, #credits, #top';
+const SECTION_SELECTOR = 'article[id^="chapter-"], section[id^="chapter-"], #diagnosis, #summary, #credits, #top';
 const SECTION_TITLES = Object.fromEntries([
   ...NAV_ITEMS.map((item) => [item.href.slice(1), item.num === '◆' || item.num === '©' ? item.title : `${item.num} · ${item.title}`]),
   ['top', 'الترويسة'],
@@ -2641,8 +2814,8 @@ function readStoredTheme() {
   }
 }
 
-// الأقسام بترتيب ظهورها في الوثيقة: الفصول 01–10، ثم الخلاصة، ثم الفصل 11، ثم التوثيق
-const DOC_ORDER = [...CHAPTERS.map((c) => `#chapter-${c.id}`), '#summary', `#chapter-${FINALE.id}`, '#credits'];
+// الأقسام بترتيب ظهورها في الوثيقة: التشخيص، الفصول 01–11، الخلاصة، الفصل 12، التوثيق
+const DOC_ORDER = ['#diagnosis', ...CHAPTERS.map((c) => `#chapter-${c.id}`), '#summary', `#chapter-${FINALE.id}`, '#credits'];
 const SECTIONS_IN_ORDER = DOC_ORDER.map((href) => NAV_ITEMS.find((item) => item.href === href));
 
 // ينقل إلى عنوان القسم مباشرة تحت الشريط العلوي (بدل بداية القسم وحشوته العلوية)،
@@ -2996,10 +3169,10 @@ export default function PlanetarySurvivalDocument() {
             </p>
             <div className="mt-10 flex flex-wrap justify-center gap-3 print:hidden">
               <a
-                href="#chapter-01"
+                href="#diagnosis"
                 onClick={(e) => {
                   e.preventDefault();
-                  jump('#chapter-01');
+                  jump('#diagnosis');
                 }}
                 className="rounded-full bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
               >
@@ -3033,17 +3206,23 @@ export default function PlanetarySurvivalDocument() {
           </div>
         </header>
 
-        {/* الفصول 01–10 */}
+        {/* التشخيص: المشكلة وجذرها */}
+        <Diagnosis />
+
+        {/* الفصول 01–11 */}
         <main className="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-4xl">
           {CHAPTERS.map((chapter) => (
             <Chapter key={chapter.id} chapter={chapter} />
           ))}
         </main>
 
-        {/* الخلاصة التنفيذية: قبل الفصل 11، قسم مستقل بخلفيته وحدوده عن الختام الشعري */}
+        {/* الخلاصة التنفيذية: قبل الفصل الختامي، قسم مستقل عن الختام الشعري */}
         <ExecutiveSummary />
 
-        {/* الفصل 11 — الخاتمة والسطر الأخير: آخر فصول المحتوى */}
+        {/* الحد الفاصل بين الأرقام والخاتمة العاطفية */}
+        <NeonDivider />
+
+        {/* الفصل 12 — السطر الأخير: آخر فصول المحتوى */}
         <Finale />
 
         {/* التوثيق والحقوق: النهاية المطلقة للوثيقة */}
