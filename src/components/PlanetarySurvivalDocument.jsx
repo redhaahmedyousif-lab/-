@@ -501,7 +501,6 @@ const CREDITS = {
   ],
   copyright:
     '© 2026-2027 جميع الحقوق محفوظة ضمن متطلبات مشاريع مادة الأفراد والمجتمعات (MYP\u00a0A).', // مسافة غير قابلة للكسر تُبقي «MYP A» في سطر واحد
-  footer: '© 2026-2027 رضا أحمد يوسف · مدرسة الميثاق الإعدادية للبنين',
   statement:
     'هذه الوثيقة الرقمية وخوارزميات البقاء الكوكبي ثمرة جهد أكاديمي وفكري، ويُحفظ العمل بالكامل باسم المعد وتحت إشراف معلم المادة.',
 };
@@ -519,7 +518,7 @@ const SUMMARY = {
   ],
   pillars: [
     {
-      icon: '🚨',
+      icon: '!',
       title: 'الإنذار',
       chapters: '01–02',
       points: [
@@ -686,16 +685,6 @@ function buildDocumentText(format = 'txt') {
     ? [h(1, DOCUMENT_META.title), '', `**${DOCUMENT_META.motto}**`, '', divider]
     : [DOCUMENT_META.title, DOCUMENT_META.motto, divider];
 
-  CHAPTERS.forEach((chapter) => {
-    out.push('', h(2, `${chapter.id} — ${chapter.title}${chapter.en ? ` (${chapter.en})` : ''}`));
-    if (chapter.algorithm) out.push(md ? `\n*خوارزمية البقاء: ${chapter.algorithm}*` : `خوارزمية البقاء: ${chapter.algorithm}`);
-    chapter.blocks.forEach((block) => {
-      const text = blockToText(block, md);
-      if (text) out.push('', text);
-    });
-    out.push('', divider);
-  });
-
   out.push('', h(2, `${SUMMARY.title} (${SUMMARY.en})`), '', SUMMARY.lead, '');
   out.push(
     md
@@ -711,6 +700,17 @@ function buildDocumentText(format = 'txt') {
     );
   });
   out.push('', divider);
+
+  CHAPTERS.forEach((chapter) => {
+    out.push('', h(2, `${chapter.id} — ${chapter.title}${chapter.en ? ` (${chapter.en})` : ''}`));
+    if (chapter.algorithm) out.push(md ? `\n*خوارزمية البقاء: ${chapter.algorithm}*` : `خوارزمية البقاء: ${chapter.algorithm}`);
+    chapter.blocks.forEach((block) => {
+      const text = blockToText(block, md);
+      if (text) out.push('', text);
+    });
+    out.push('', divider);
+  });
+
 
   const { call } = FINALE;
   out.push(
@@ -1916,22 +1916,22 @@ function Credits() {
     <section
       id="credits"
       aria-labelledby="credits-title"
-      className="scroll-mt-28 border-t border-slate-200 bg-slate-50 py-16 dark:border-slate-800 dark:bg-slate-950 sm:py-20"
+      className="scroll-mt-28 border-t border-slate-200 bg-slate-50 pb-28 pt-16 dark:border-slate-800 dark:bg-slate-900/40 sm:pt-20"
     >
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
-        <div className="text-center">
+        <header className="text-center">
           <PlanetLogo className="mx-auto h-12 w-12" />
           <h2 id="credits-title" className="mt-4 text-2xl font-extrabold text-slate-900 dark:text-white sm:text-3xl">
             {CREDITS.title}
           </h2>
           <div className="mx-auto mt-4 h-px w-32 bg-gradient-to-l from-transparent via-emerald-500 to-transparent" />
-        </div>
+        </header>
 
         <dl className="mt-10 grid gap-4 sm:grid-cols-3">
           {CREDITS.people.map((p) => (
             <div
               key={p.role}
-              className="rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900"
+              className="flex flex-col items-center rounded-2xl border border-slate-200 bg-white p-5 text-center dark:border-slate-800 dark:bg-slate-900"
             >
               <dt className="text-xs font-bold tracking-wide text-emerald-700 dark:text-emerald-400">{p.role}</dt>
               <dd className="mt-2 text-base font-extrabold text-slate-900 dark:text-white">{p.name}</dd>
@@ -1942,36 +1942,28 @@ function Credits() {
           ))}
         </dl>
 
-        <div className="mt-8 rounded-2xl border-2 border-emerald-500/40 bg-emerald-50 px-6 py-6 text-center dark:border-emerald-500/30 dark:bg-emerald-500/10">
-          <p className="text-sm font-bold leading-relaxed text-slate-800 dark:text-slate-100 sm:text-base">
-            <Inline text={CREDITS.copyright} />
-          </p>
-          <p className="mt-4 font-naskh text-base italic leading-loose text-slate-700 dark:text-slate-300 sm:text-lg">
-            «{CREDITS.statement}»
-          </p>
-        </div>
+        <blockquote className="mx-auto mt-10 max-w-2xl text-center font-naskh text-base italic leading-loose text-slate-700 dark:text-slate-300 sm:text-lg">
+          «{CREDITS.statement}»
+        </blockquote>
+
+        {/* سطر الحقوق: آخر ما في الوثيقة */}
+        <p className="mt-10 border-t border-slate-200 pt-6 text-center text-xs font-semibold leading-relaxed text-slate-500 dark:border-slate-800 dark:text-slate-400 sm:text-sm">
+          <Inline text={CREDITS.copyright} />
+        </p>
       </div>
     </section>
   );
 }
 
-function Finale({ notify }) {
+function Finale() {
   const { call } = FINALE;
   return (
     <section
       id={`chapter-${FINALE.id}`}
       aria-labelledby={`chapter-${FINALE.id}-title`}
-      className="relative scroll-mt-28 overflow-hidden bg-gradient-to-b from-slate-100 via-sky-50 to-white py-20 dark:from-slate-950 dark:via-indigo-950 dark:to-black sm:py-28"
+      className="scroll-mt-28 bg-gradient-to-b from-slate-100 via-sky-50 to-white py-20 dark:from-slate-950 dark:via-indigo-950 dark:to-slate-950 sm:py-28"
     >
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-0 dark:opacity-100"
-        style={{
-          backgroundImage:
-            'radial-gradient(1px 1px at 20% 30%, #fff 50%, transparent), radial-gradient(1px 1px at 70% 20%, #fff 50%, transparent), radial-gradient(1.5px 1.5px at 40% 80%, #fde68a 50%, transparent), radial-gradient(1px 1px at 85% 65%, #fff 50%, transparent), radial-gradient(1px 1px at 10% 70%, #bae6fd 50%, transparent), radial-gradient(1px 1px at 55% 45%, #fff 50%, transparent), radial-gradient(1px 1px at 30% 55%, #fff 50%, transparent), radial-gradient(1.5px 1.5px at 90% 10%, #fde68a 50%, transparent)',
-        }}
-      />
-      <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6">
         <ChapterHeader id={FINALE.id} title={FINALE.title} />
 
         {/* النداء الشامل */}
@@ -2002,32 +1994,26 @@ function Finale({ notify }) {
           ))}
         </div>
 
-        {/* السطر الأخير */}
+        {/* السطر الأخير: العنوان، ثم السطر، ثم فاصل، ثم التوقيع — دون عناصر إضافية */}
         <div className="mx-auto mt-24 max-w-3xl text-center">
           <div className="mx-auto mb-10 h-px w-48 bg-gradient-to-l from-transparent via-amber-500 to-transparent" />
           <p className="text-xs font-bold tracking-[0.4em] text-amber-600 dark:text-amber-400">السطر الأخير</p>
-          <p className="mt-6 bg-gradient-to-l from-amber-500 via-sky-500 to-emerald-500 bg-clip-text print:bg-none print:text-emerald-800 text-2xl font-black leading-[1.9] text-transparent dark:from-amber-300 dark:via-sky-300 dark:to-emerald-300 sm:text-4xl sm:leading-[1.8]">
+          <p className="mt-6 bg-gradient-to-l from-amber-600 via-sky-600 to-emerald-600 bg-clip-text text-2xl font-black leading-[1.9] text-transparent print:bg-none print:text-emerald-800 dark:from-amber-300 dark:via-sky-300 dark:to-emerald-300 sm:text-4xl sm:leading-[1.8]">
             {FINALE.finalLine}
           </p>
-          <div className="mt-8 flex justify-center gap-4 text-3xl" aria-hidden="true">
-            <span>☀</span>
-            <span>💧</span>
-            <span>🌳</span>
+          <div className="mx-auto mt-12 flex items-center justify-center gap-3" aria-hidden="true">
+            <span className="h-px w-12 bg-slate-300 dark:bg-slate-700" />
+            <span className="h-1.5 w-1.5 rotate-45 bg-amber-500" />
+            <span className="h-px w-12 bg-slate-300 dark:bg-slate-700" />
           </div>
-          <p className="mt-12 font-naskh text-lg italic text-slate-600 dark:text-slate-300 sm:text-2xl">
+          <p className="mt-8 font-naskh text-lg italic leading-loose text-slate-600 dark:text-slate-300 sm:text-2xl">
             {FINALE.signature}
           </p>
-          <PlanetLogo className="mx-auto mt-10 h-16 w-16 opacity-80" />
-          <ShareButtons notify={notify} label="انشر الوثيقة… ووقّع على مستقبل الحياة" className="mt-12" />
         </div>
       </div>
     </section>
   );
 }
-
-/* ------------------------------------------------------------------ */
-/*  المكون الرئيسي                                                     */
-/* ------------------------------------------------------------------ */
 
 /* ------------------------------------------------------------------ */
 /*  التصدير إلى ملف                                                     */
@@ -2156,6 +2142,8 @@ function chapterPoints(chapter) {
 
 const SLIDES = [
   { kind: 'cover' },
+  { kind: 'summary-stats' },
+  { kind: 'summary-pillars' },
   ...CHAPTERS.map((chapter) => ({
     kind: 'chapter',
     chapter,
@@ -2163,8 +2151,6 @@ const SLIDES = [
     points: chapterPoints(chapter),
     stat: chapter.blocks.find((b) => b.type === 'stat'),
   })),
-  { kind: 'summary-stats' },
-  { kind: 'summary-pillars' },
   { kind: 'call' },
   { kind: 'final' },
   { kind: 'credits' },
@@ -2617,6 +2603,10 @@ function QuickFinder({ rootRef, onClose }) {
   );
 }
 
+/* ------------------------------------------------------------------ */
+/*  المكون الرئيسي                                                     */
+/* ------------------------------------------------------------------ */
+
 const THEME_KEY = 'psd-theme';
 
 function readStoredTheme() {
@@ -2627,8 +2617,8 @@ function readStoredTheme() {
   }
 }
 
-// الأقسام بترتيب ظهورها في الوثيقة (الخلاصة تسبق الفصل 11)
-const DOC_ORDER = [...CHAPTERS.map((c) => `#chapter-${c.id}`), '#summary', `#chapter-${FINALE.id}`, '#credits'];
+// الأقسام بترتيب ظهورها في الوثيقة: الخلاصة، ثم الفصول 01–11، ثم التوثيق
+const DOC_ORDER = ['#summary', ...CHAPTERS.map((c) => `#chapter-${c.id}`), `#chapter-${FINALE.id}`, '#credits'];
 const SECTIONS_IN_ORDER = DOC_ORDER.map((href) => NAV_ITEMS.find((item) => item.href === href));
 
 // ينقل إلى عنوان القسم مباشرة تحت الشريط العلوي (بدل بداية القسم وحشوته العلوية)،
@@ -3019,6 +3009,9 @@ export default function PlanetarySurvivalDocument() {
           </div>
         </header>
 
+        {/* الخلاصة التنفيذية: في مقدمة الوثيقة كما هو معتاد أكاديمياً، فلا تقطع تسلسل الفصول */}
+        <ExecutiveSummary />
+
         {/* الفصول 01–10 */}
         <main className="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-4xl">
           {CHAPTERS.map((chapter) => (
@@ -3026,16 +3019,11 @@ export default function PlanetarySurvivalDocument() {
           ))}
         </main>
 
-        <ExecutiveSummary />
+        {/* الفصل 11 — الخاتمة والسطر الأخير: آخر فصول المحتوى */}
+        <Finale />
 
-        {/* الفصل 11 — السطر الأخير */}
-        <Finale notify={notify} />
-
+        {/* التوثيق والحقوق: النهاية المطلقة للوثيقة */}
         <Credits />
-
-        <footer className="border-t border-slate-200 bg-white py-8 text-center text-xs text-slate-500 dark:border-slate-800 dark:bg-black dark:text-slate-500">
-          {DOCUMENT_META.title} · <Inline text={CREDITS.footer} />
-        </footer>
       </div>
 
       <ScrollToTop />
