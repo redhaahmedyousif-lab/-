@@ -732,7 +732,7 @@ function buildDocumentText(format = 'txt') {
       (p) => `${md ? '- **' : ''}${p.role}:${md ? '**' : ''} ${p.name}${p.detail ? ` (${p.detail})` : ''}`
     ),
     '',
-    CREDITS.copyright.replace(/ /g, ' '),
+    CREDITS.copyright.replace(/\u00a0/g, ' '),
     '',
     md ? `> «${CREDITS.statement}»` : `«${CREDITS.statement}»`
   );
@@ -742,7 +742,7 @@ function buildDocumentText(format = 'txt') {
 
 function downloadTextFile(filename, content, mime) {
   // BOM لملف النص حتى تعرضه برامج ويندوز القديمة بترميز UTF-8 الصحيح
-  const blob = new Blob([mime === 'text/plain' ? `﻿${content}` : content], { type: `${mime};charset=utf-8` });
+  const blob = new Blob([mime === 'text/plain' ? `\uFEFF${content}` : content], { type: `${mime};charset=utf-8` });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
@@ -775,12 +775,19 @@ async function copyToClipboard(text) {
 /*  مكونات العرض الأساسية                                               */
 /* ------------------------------------------------------------------ */
 
-// نطاق رقمي مثل 1850–1900 أو 01–02: داخل نص عربي قد تعكس خوارزمية الاتجاه ترتيب الرقمين
-const NUMBER_RANGE = /^\d+(?:\.\d+)?[–-]\d+(?:\.\d+)?$/;
+// وحدات تُعرض كتلة واحدة من اليسار لليمين داخل النص العربي. بعد حرف عربي تُعامَل الأرقام
+// كـ«أرقام عربية» في خوارزمية الاتجاه (Unicode Bidi)، فتنفصل عنها الوحدة أو ينعكس النطاق:
+// «1.5°C» كانت تظهر «C°1.5»، و«1850–1900» كانت تظهر «1900–1850».
+const LTR_UNITS = [
+  '[±+]?\\d+(?:\\.\\d+)?°C', // درجات الحرارة: 1.5°C، ±0.13°C، +1.43°C
+  '\\d+(?:\\.\\d+)?[–-]\\d+(?:\\.\\d+)?', // النطاقات: 1850–1900، 01–02، 2026-2027
+];
+const LTR_UNIT = new RegExp(`^(?:${LTR_UNITS.join('|')})$`);
+const INLINE_TOKENS = new RegExp(`(\\*\\*.+?\\*\\*|_\\{.+?\\}|${LTR_UNITS.join('|')})`, 'g');
 
 function Inline({ text }) {
-  // **غامق**، و _{منخفض} (مثل PM_{2.5})، والنطاقات الرقمية التي تُعزل باتجاه LTR
-  return text.split(/(\*\*.+?\*\*|_\{.+?\}|\d+(?:\.\d+)?[–-]\d+(?:\.\d+)?)/g).map((part, i) => {
+  // **غامق**، و _{منخفض} (مثل PM_{2.5})، والوحدات الرقمية التي تُعزل باتجاه LTR
+  return text.split(INLINE_TOKENS).map((part, i) => {
     if (part.startsWith('**')) {
       return (
         <strong key={i} className="font-bold text-sky-700 dark:text-sky-300">
@@ -789,7 +796,7 @@ function Inline({ text }) {
       );
     }
     if (part.startsWith('_{')) return <sub key={i}>{part.slice(2, -1)}</sub>;
-    if (NUMBER_RANGE.test(part)) {
+    if (LTR_UNIT.test(part)) {
       return (
         <bdi key={i} dir="ltr">
           {part}
@@ -1840,7 +1847,7 @@ function ScrollToTop() {
 
   const scrollUp = () => {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+    window.scrollTo({ top: 0, behavior: reduceMotion ? 'instant' : 'smooth' });
   };
 
   return (
@@ -2488,12 +2495,13 @@ function findMatches(root, query) {
 
 const supportsHighlights = () => typeof CSS !== 'undefined' && 'highlights' in CSS && typeof Highlight !== 'undefined';
 
-function QuickFinder({ rootRef, headerRef, onClose }) {
+function QuickFinder({ rootRef, onClose }) {
   const [query, setQuery] = useState('');
   const [matches, setMatches] = useState([]);
   const [current, setCurrent] = useState(-1);
   const [listOpen, setListOpen] = useState(true);
   const inputRef = useRef(null);
+  const rowRef = useRef(null);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -2530,12 +2538,13 @@ function QuickFinder({ rootRef, headerRef, onClose }) {
       setCurrent(i);
       setListOpen(false); // يُطوى بعد الانتقال حتى لا يغطي النص على الهاتف
       if (supportsHighlights()) CSS.highlights.set('psd-search-current', new Highlight(match.range));
-      const headerHeight = headerRef.current?.getBoundingClientRect().height ?? 120;
-      const top = match.range.getBoundingClientRect().top + window.scrollY - headerHeight - 32;
+      // اللوحة طبقة فوق الصفحة: تظهر النتيجة أسفل صف البحث لا خلفه
+      const coveredUntil = rowRef.current?.getBoundingClientRect().bottom ?? 160;
+      const top = match.range.getBoundingClientRect().top + window.scrollY - coveredUntil - 32;
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      window.scrollTo({ top, behavior: reduceMotion ? 'auto' : 'smooth' });
+      window.scrollTo({ top, behavior: reduceMotion ? 'instant' : 'smooth' });
     },
-    [matches, headerRef]
+    [matches]
   );
 
   const step = (delta) => {
@@ -2547,7 +2556,7 @@ function QuickFinder({ rootRef, headerRef, onClose }) {
 
   return (
     <div data-search-skip className="mx-auto max-w-5xl px-4 pb-3 sm:px-6" role="search">
-      <div className="flex items-center gap-2">
+      <div ref={rowRef} className="flex items-center gap-2">
         <div className="relative flex-1">
           <SearchIcon className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
@@ -2618,6 +2627,80 @@ function readStoredTheme() {
   }
 }
 
+// الأقسام بترتيب ظهورها في الوثيقة (الخلاصة تسبق الفصل 11)
+const DOC_ORDER = [...CHAPTERS.map((c) => `#chapter-${c.id}`), '#summary', `#chapter-${FINALE.id}`, '#credits'];
+const SECTIONS_IN_ORDER = DOC_ORDER.map((href) => NAV_ITEMS.find((item) => item.href === href));
+
+// ينقل إلى عنوان القسم مباشرة تحت الشريط العلوي (بدل بداية القسم وحشوته العلوية)،
+// ويحدّث الرابط في شريط العنوان ليمكن مشاركته
+function jumpToSection(href, navEl, { instant = false } = {}) {
+  const section = document.querySelector(href);
+  if (!section) return;
+  const anchor = section.querySelector('h2') ?? section;
+  const headerBottom = navEl?.getBoundingClientRect().bottom ?? 0;
+  const top = anchor.getBoundingClientRect().top + window.scrollY - headerBottom - 20;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  window.scrollTo({ top: Math.max(0, top), behavior: instant || reduceMotion ? 'instant' : 'smooth' });
+  history.replaceState(null, '', href);
+}
+
+// لوحة الفهرس: كل الأقسام دفعة واحدة، أسرع من تمرير الشريط الأفقي على الهاتف
+function SectionsPanel({ active, onPick, onClose }) {
+  const panelRef = useRef(null);
+
+  useEffect(() => {
+    panelRef.current?.querySelector('[aria-current], a')?.focus();
+    const onKey = (e) => e.key === 'Escape' && onClose();
+    const onPointer = (e) => {
+      if (!panelRef.current?.contains(e.target) && !e.target.closest('[data-toc-toggle]')) onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('pointerdown', onPointer);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('pointerdown', onPointer);
+    };
+  }, [onClose]);
+
+  return (
+    <div ref={panelRef} data-search-skip className="mx-auto max-w-5xl px-4 pb-3 sm:px-6">
+      {/* ارتفاع محدود مع تمرير داخلي: اللوحة داخل الشريط الثابت، ودون هذا تتجاوز شاشة الهاتف
+          فتتعذّر رؤية آخر الأقسام أو الإغلاق بالنقر خارجها */}
+      <ol className="grid max-h-[70vh] grid-cols-1 gap-1 overflow-y-auto overscroll-contain rounded-2xl border border-slate-200 bg-white p-2 shadow-lg dark:border-slate-700 dark:bg-slate-900 sm:grid-cols-2 lg:grid-cols-3">
+        {SECTIONS_IN_ORDER.map((item) => {
+          const isActive = active === item.href;
+          return (
+            <li key={item.href}>
+              <a
+                href={item.href}
+                aria-current={isActive ? 'location' : undefined}
+                onClick={(e) => {
+                  e.preventDefault();
+                  onPick(item.href);
+                }}
+                className={`flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                  isActive
+                    ? 'bg-emerald-600 font-bold text-white dark:bg-emerald-500 dark:text-slate-950'
+                    : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'
+                }`}
+              >
+                <span
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg font-mono text-xs font-bold ${
+                    isActive ? 'bg-white/20' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                  }`}
+                >
+                  {item.num}
+                </span>
+                <span className="truncate">{item.title}</span>
+              </a>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
+}
+
 // القسم الظاهر حالياً، لإبرازه في شريط التنقل السريع
 function useActiveSection(navRef) {
   const [active, setActive] = useState(null);
@@ -2674,12 +2757,45 @@ export default function PlanetarySurvivalDocument() {
   const [slideshowOpen, setSlideshowOpen] = useState(false);
   const resetTimer = useRef(null);
   const toastTimer = useRef(null);
-  const headerRef = useRef(null);
   const navRef = useRef(null);
   const contentRef = useRef(null);
   const activeSection = useActiveSection(navRef);
   const closeSearch = useCallback(() => setSearchOpen(false), []);
   const closeSlideshow = useCallback(() => setSlideshowOpen(false), []);
+  const [tocOpen, setTocOpen] = useState(false);
+  const closeToc = useCallback(() => setTocOpen(false), []);
+  const jump = useCallback((href) => {
+    setTocOpen(false);
+    jumpToSection(href, navRef.current);
+  }, []);
+  // رابط مُشارَك إلى قسم (مثل #chapter-07): ضبط الموضع بدقة عند فتح الصفحة،
+  // وعند تغيّر الرابط داخل الصفحة نفسها (hashchange)
+  useEffect(() => {
+    let frame = 0;
+    const alignToHash = (instant) => {
+      const { hash } = window.location;
+      if (!NAV_ITEMS.some((item) => item.href === hash)) return;
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => jumpToSection(hash, navRef.current, { instant }));
+    };
+    const onHashChange = () => alignToHash(false);
+    alignToHash(true);
+    window.addEventListener('hashchange', onHashChange);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('hashchange', onHashChange);
+    };
+  }, []);
+
+  // يفتح لوحة واحدة فقط في كل مرة (البحث أو الفهرس)
+  const toggleSearch = () => {
+    setTocOpen(false);
+    setSearchOpen((o) => !o);
+  };
+  const toggleToc = () => {
+    setSearchOpen(false);
+    setTocOpen((o) => !o);
+  };
 
   // «/» يفتح البحث السريع (ما لم يكن المستخدم يكتب في حقل)
   useEffect(() => {
@@ -2760,7 +2876,6 @@ export default function PlanetarySurvivalDocument() {
 
       {/* شريط علوي ثابت */}
       <div
-        ref={headerRef}
         className="sticky top-0 z-40 border-b print:hidden border-slate-200/80 bg-white/80 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-950/80"
       >
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-2 px-3 py-3 sm:gap-3 sm:px-6">
@@ -2773,7 +2888,7 @@ export default function PlanetarySurvivalDocument() {
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <button
               type="button"
-              onClick={() => setSearchOpen((o) => !o)}
+              onClick={toggleSearch}
               aria-label="البحث في الوثيقة"
               aria-expanded={searchOpen}
               title="بحث (/)"
@@ -2797,11 +2912,30 @@ export default function PlanetarySurvivalDocument() {
           </div>
         </div>
         <nav ref={navRef} aria-label="التنقل السريع بين الأقسام" className="mx-auto max-w-5xl overflow-x-auto px-4 pb-2 sm:px-6">
-          <ol className="flex gap-1.5 whitespace-nowrap text-xs">
+          <ol className="flex items-center gap-1.5 whitespace-nowrap text-xs">
+            <li className="sticky right-0 z-10 bg-white/90 pl-1 dark:bg-slate-950/90">
+              <button
+                type="button"
+                data-toc-toggle
+                onClick={toggleToc}
+                aria-expanded={tocOpen}
+                className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 font-bold transition ${
+                  tocOpen
+                    ? 'border-emerald-600 bg-emerald-600 text-white dark:border-emerald-500 dark:bg-emerald-500 dark:text-slate-950'
+                    : 'border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
+                }`}
+              >
+                <span aria-hidden="true">☰</span> الفهرس
+              </button>
+            </li>
             {NAV_ITEMS.map((item) => (
               <li key={item.href}>
                 <a
                   href={item.href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    jump(item.href);
+                  }}
                   aria-current={activeSection === item.href ? 'location' : undefined}
                   className={`inline-block rounded-full px-3 py-1 transition ${NAV_TONES[item.tone || 'default']} ${
                     activeSection === item.href ? 'bg-emerald-600 !text-white shadow-sm dark:bg-emerald-500 dark:!text-slate-950' : ''
@@ -2813,7 +2947,14 @@ export default function PlanetarySurvivalDocument() {
             ))}
           </ol>
         </nav>
-        {searchOpen && <QuickFinder rootRef={contentRef} headerRef={headerRef} onClose={closeSearch} />}
+        {/* اللوحات طبقة فوق المحتوى (absolute) لا جزءاً من تدفق الصفحة: لو كانت داخل التدفق
+            لدفعت الصفحة كلها للأسفل عند فتحها ثم قفزت بها للأعلى عند إغلاقها */}
+        {(tocOpen || searchOpen) && (
+          <div className="absolute inset-x-0 top-full border-b border-slate-200/80 bg-white/95 pt-3 shadow-lg backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-950/95">
+            {tocOpen && <SectionsPanel active={activeSection} onPick={jump} onClose={closeToc} />}
+            {searchOpen && <QuickFinder rootRef={contentRef} onClose={closeSearch} />}
+          </div>
+        )}
       </div>
 
       {/* محتوى الوثيقة (نطاق البحث السريع) */}
@@ -2842,12 +2983,20 @@ export default function PlanetarySurvivalDocument() {
             <div className="mt-10 flex flex-wrap justify-center gap-3 print:hidden">
               <a
                 href="#chapter-01"
+                onClick={(e) => {
+                  e.preventDefault();
+                  jump('#chapter-01');
+                }}
                 className="rounded-full bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
               >
                 ابدأ القراءة ↓
               </a>
               <a
                 href="#summary"
+                onClick={(e) => {
+                  e.preventDefault();
+                  jump('#summary');
+                }}
                 className="rounded-full border-2 border-emerald-600 px-6 py-3 text-sm font-bold text-emerald-700 transition hover:bg-emerald-50 dark:border-emerald-400 dark:text-emerald-300 dark:hover:bg-emerald-950"
               >
                 ◆ الخلاصة في دقيقة

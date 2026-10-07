@@ -13,6 +13,7 @@ const browser = await chromium.launch({ executablePath: process.env.PDF_CHROMIUM
 try {
   const page = await browser.newPage();
   await page.goto(server.resolvedUrls.local[0], { waitUntil: 'networkidle' });
+  // eslint-disable-next-line no-undef -- تعمل داخل صفحة المتصفح حيث document معرّف
   await page.evaluate(() => document.fonts.ready);
   await page.emulateMedia({ media: 'print' });
   await page.pdf({ path: OUTPUT, preferCSSPageSize: true, printBackground: true });

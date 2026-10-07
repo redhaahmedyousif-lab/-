@@ -2,8 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-html {
-  scroll-behavior: smooth;
+/* التمرير الناعم فقط لمن لم يطلب تقليل الحركة من إعدادات جهازه */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 body {
@@ -60,6 +63,8 @@ body {
 
   body {
     background: #fff !important;
+    /* العرض التقديمي يقفل تمرير الصفحة؛ بدون هذا تُطبع صفحة واحدة فقط */
+    overflow: visible !important;
   }
 
   /* الأقسام الكبيرة بخلفية بيضاء لتوفير الحبر */
