@@ -1,4 +1,5 @@
 import { Fragment, useCallback, useEffect, useId, useRef, useState } from 'react';
+import qrCodeImage from '../assets/planetary-qr.png';
 
 /* ------------------------------------------------------------------ */
 /*  محتوى الوثيقة — النص النهائي المعتمد                               */
@@ -80,6 +81,29 @@ const DASHBOARD = [
     method: 'المسبارات الذكية وأسراب الروبوتات البحرية',
   },
 ];
+
+// الملخص الأكاديمي: بطاقة A4 مستقلة للطباعة (مقدمة، عرض، خاتمة) مع رمز QR
+const ACADEMIC_SUMMARY = {
+  title: 'الملخص الأكاديمي',
+  en: 'Academic Abstract',
+  parts: [
+    {
+      label: 'المقدمة',
+      text: 'في زمنٍ تتسارع فيه نوبات الاختلال الكوكبي وتتداعى فيه التوازنات الحيوية للأرض، لم تعد أزمة المناخ مجرد قضية بيئية عابرة، بل غدت تحدياً وجودياً يهدد استمرار الحضارة البشرية، مما يحتم علينا الانتقال من حلول التسكين التقليدية إلى صياغة استراتيجية بقاء حاسمة تدمج العلوم البيئية بالهندسة الرقمية المتقدمة.',
+    },
+    {
+      label: 'العرض: المشكلة وأسبابها والحل',
+      text: 'تتمثل المشكلة المحورية في ظاهرة (الاحتباس الحراري المتصاعد) وما يتبعها من ارتفاع كوكبي لدرجات الحرارة تجاوز عتبة (+1.43°C)، مما يسبب اضطراب الطقس، وجفاف الموارد، واختناق الرئة البيئية للأرض. وتعود أسباب هذه الأزمة إلى (العمى الجشع للاقتصاد الخطي) وتعاظم انبعاثات الغازات الدفيئة الناجمة عن الثورة الصناعية، وقطع الغابات، والاستهلاك المفرط للوقود الأحفوري دون وضع كلفة بيئية حقيقية للانبعاثات. ولرأب هذا الخلل الجسيم، يقدم مشروع "وثيقة البقاء الكوكبي" حلاً هندسياً كاملاً يقوم على إطار حوكمة عالي الدقة من 12 فصلاً؛ يربط بين الذكاء الاصطناعي لفرض الرسوم والضريبة الكربونية الآلية (Smart Carbon Fee Protocol) على المنشآت الملوثة، ونظام التوأمة الرقمية للأرض، وأطر القياس والتحقق (MRV)، لإعادة تدوير تلك العوائد فوراً في تمويل تقنيات الاستعادة البيئية وأبراج الهواء وزراعة المحيطات.',
+    },
+    {
+      label: 'الخاتمة',
+      text: 'وختاماً، فإن هذا العمل لا يقف عند حدود التوثيق الأكاديمي لبرنامج السنوات المتوسطة (MYP A)، بل يجسد رؤية استشرافية تنطلق من طاقات الشباب لبناء نموذج حي يبرهن كيف يمكن للعلم والهندسة والقرار الحاسم أن يكتبوا السطر الأخير في حماية كوكب الأرض.',
+    },
+  ],
+  qrCaption: 'امسح الكيو آر بالأسفل لتفاصيل أكثر',
+  credits: 'إعداد الطالب: رضا أحمد يوسف | إشراف: أستاذ حسن معيوف | مدرسة الميثاق الإعدادية للبنين — برنامج MYP\u00a0A',
+  pdfFile: 'academic-summary.pdf', // يُولَّد عند كل نشر (scripts/generate-pdf.mjs)
+};
 
 // التشخيص: المشكلة وسببها الجذر، قبل الفصل 01
 const DIAGNOSIS = {
@@ -660,6 +684,7 @@ const SUMMARY = {
 
 const NAV_ITEMS = [
   // التشخيص والخلاصة أولاً: يظهران في أول الفهرس على شاشة الهاتف دون تمرير جانبي
+  { href: '#academic-summary', num: '✎', title: ACADEMIC_SUMMARY.title, tone: 'summary' },
   { href: '#diagnosis', num: '⚑', title: DIAGNOSIS.title, tone: 'summary' },
   { href: '#summary', num: '◆', title: SUMMARY.title, tone: 'summary' },
   ...CHAPTERS.map((c) => ({ href: `#chapter-${c.id}`, num: c.id, title: c.title })),
@@ -775,6 +800,12 @@ function buildDocumentText(format = 'txt') {
   const out = md
     ? [h(1, DOCUMENT_META.title), '', `**${DOCUMENT_META.motto}**`, '', divider]
     : [DOCUMENT_META.title, DOCUMENT_META.motto, divider];
+
+  out.push('', h(2, `${ACADEMIC_SUMMARY.title} (${ACADEMIC_SUMMARY.en})`));
+  ACADEMIC_SUMMARY.parts.forEach((part) => {
+    out.push('', md ? `**${part.label}:** ${part.text}` : `${part.label}: ${part.text}`);
+  });
+  out.push('', divider);
 
   out.push('', h(2, `${DIAGNOSIS.title}: ${DIAGNOSIS.subtitle}`));
   DIAGNOSIS.items.forEach((item) => {
@@ -1073,6 +1104,24 @@ function printDocument(notify) {
   }
 }
 
+// طباعة بطاقة الملخص الأكاديمي وحدها في صفحة A4 واحدة: صنف مؤقت على <html> تخفي به أنماط
+// الطباعة كل ما عداها، ويُزال بعد إغلاق نافذة الطباعة (afterprint يعمل أيضاً حين لا تحجب
+// print() التنفيذ، كما في Safari على الهاتف)
+function printAcademicCard(notify) {
+  if (typeof window.print !== 'function') {
+    notify('الطباعة غير مدعومة هنا — استخدم «تحميل الملخص PDF»', 'error');
+    return;
+  }
+  const root = document.documentElement;
+  const cleanup = () => {
+    root.classList.remove('print-card-only');
+    window.removeEventListener('afterprint', cleanup);
+  };
+  root.classList.add('print-card-only');
+  window.addEventListener('afterprint', cleanup);
+  window.print();
+}
+
 function PdfIcon(props) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
@@ -1322,6 +1371,18 @@ function ShareMenu({ notify }) {
           >
             <PrintIcon className="h-4 w-4 text-slate-500" />
             طباعة
+          </button>
+          <button
+            role="menuitem"
+            type="button"
+            onClick={() => {
+              close();
+              printAcademicCard(notify);
+            }}
+            className={MENU_ITEM}
+          >
+            <PrintIcon className="h-4 w-4 text-emerald-500" />
+            طباعة الملخص (A4)
           </button>
           {Object.entries(EXPORTS).map(([format, { label }]) => (
             <button
@@ -2009,7 +2070,7 @@ function PrintWatermark() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-[70] hidden select-none items-center justify-center overflow-hidden print:flex"
+      className="psd-watermark pointer-events-none fixed inset-0 z-[70] hidden select-none items-center justify-center overflow-hidden print:flex"
     >
       <div className="flex -rotate-[30deg] flex-col items-center gap-4 text-center text-emerald-900/[0.07]">
         <p className="whitespace-nowrap text-6xl font-black">{WATERMARK.title}</p>
@@ -2040,6 +2101,87 @@ function PrintCoverCredits() {
 }
 
 // التشخيص: المشكلة وسببها الجذر في بطاقتين متقابلتين
+// بطاقة الملخص الأكاديمي: إطار بمقاس A4 للطباعة، فيه الملخص الثلاثي ومربع رمز QR وسطر التوثيق
+function AcademicSummaryCard({ notify }) {
+  return (
+    <section
+      id="academic-summary"
+      aria-labelledby="academic-summary-title"
+      className="scroll-mt-28 border-b border-slate-200 bg-slate-100 px-4 py-14 dark:border-slate-800 dark:bg-slate-900/60 sm:py-20"
+    >
+      <article className="psd-a4-card mx-auto flex max-w-[210mm] flex-col rounded-2xl border-[3px] border-double border-emerald-600 bg-white p-6 text-slate-800 shadow-xl dark:border-emerald-500 dark:bg-slate-950 dark:text-slate-200 sm:p-10">
+        <header className="flex items-center gap-4 border-b-2 border-emerald-600/30 pb-5">
+          <PlanetLogo className="h-14 w-14 shrink-0 sm:h-16 sm:w-16" />
+          <div className="min-w-0">
+            <p dir="ltr" className="text-end font-mono text-xs font-bold tracking-widest text-emerald-700 dark:text-emerald-400">
+              {ACADEMIC_SUMMARY.en}
+            </p>
+            <h2 id="academic-summary-title" className="text-2xl font-black text-slate-900 dark:text-white sm:text-3xl">
+              {ACADEMIC_SUMMARY.title}
+            </h2>
+            <p className="mt-1 text-sm font-bold text-slate-500 dark:text-slate-400">
+              {DOCUMENT_META.title} — {DOCUMENT_META.motto}
+            </p>
+          </div>
+        </header>
+
+        <div className="mt-6 space-y-5">
+          {ACADEMIC_SUMMARY.parts.map((part, i) => (
+            <section key={part.label}>
+              <h3 className="flex items-center gap-2 text-base font-extrabold text-emerald-800 dark:text-emerald-300 sm:text-lg">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 font-mono text-xs text-white">
+                  {i + 1}
+                </span>
+                {part.label}
+              </h3>
+              <p className="mt-2 text-start font-naskh text-[1.05rem] leading-[2] sm:text-justify sm:text-lg sm:leading-[2] print:text-justify">
+                <Inline text={part.text} />
+              </p>
+            </section>
+          ))}
+        </div>
+
+        {/* مربع رمز QR: العبارة أعلاه لأنها تشير إلى الرمز «بالأسفل» */}
+        <div className="mt-8 flex flex-col items-center gap-3">
+          <p className="text-lg font-black text-slate-900 dark:text-white sm:text-xl">{ACADEMIC_SUMMARY.qrCaption}</p>
+          <span className="text-2xl leading-none text-emerald-600" aria-hidden="true">
+            ↓
+          </span>
+          <div className="rounded-2xl border-2 border-emerald-600 bg-white p-2">
+            <img
+              src={qrCodeImage}
+              alt="رمز QR لتفاصيل وثيقة البقاء الكوكبي"
+              width="1181"
+              height="1181"
+              className="psd-qr h-48 w-48 sm:h-56 sm:w-56"
+            />
+          </div>
+        </div>
+
+        <footer className="mt-8 border-t-2 border-emerald-600/30 pt-4 text-center text-xs font-bold leading-relaxed text-slate-600 dark:text-slate-400 sm:text-sm">
+          <Inline text={ACADEMIC_SUMMARY.credits} />
+        </footer>
+      </article>
+
+      {/* أدوات الشاشة فقط */}
+      <div className="mx-auto mt-6 flex max-w-[210mm] flex-wrap justify-center gap-2 print:hidden">
+        <button
+          type="button"
+          onClick={() => printAcademicCard(notify)}
+          className={`${SHARE_BTN} bg-emerald-600 text-white hover:bg-emerald-500`}
+        >
+          <PrintIcon className="h-4 w-4" />
+          طباعة الملخص (A4)
+        </button>
+        <a href={ACADEMIC_SUMMARY.pdfFile} download className={`${SHARE_BTN} bg-red-600 text-white hover:bg-red-500`}>
+          <PdfIcon className="h-4 w-4" />
+          تحميل الملخص PDF
+        </a>
+      </div>
+    </section>
+  );
+}
+
 function Diagnosis() {
   return (
     <section
@@ -2632,7 +2774,7 @@ function normalizeForSearch(text) {
   return { normalized, offsets };
 }
 
-const SECTION_SELECTOR = 'article[id^="chapter-"], section[id^="chapter-"], #diagnosis, #summary, #credits, #top';
+const SECTION_SELECTOR = 'article[id^="chapter-"], section[id^="chapter-"], #academic-summary, #diagnosis, #summary, #credits, #top';
 const SECTION_TITLES = Object.fromEntries([
   ...NAV_ITEMS.map((item) => [item.href.slice(1), item.num === '◆' || item.num === '©' ? item.title : `${item.num} · ${item.title}`]),
   ['top', 'الترويسة'],
@@ -2815,7 +2957,7 @@ function readStoredTheme() {
 }
 
 // الأقسام بترتيب ظهورها في الوثيقة: التشخيص، الفصول 01–11، الخلاصة، الفصل 12، التوثيق
-const DOC_ORDER = ['#diagnosis', ...CHAPTERS.map((c) => `#chapter-${c.id}`), '#summary', `#chapter-${FINALE.id}`, '#credits'];
+const DOC_ORDER = ['#academic-summary', '#diagnosis', ...CHAPTERS.map((c) => `#chapter-${c.id}`), '#summary', `#chapter-${FINALE.id}`, '#credits'];
 const SECTIONS_IN_ORDER = DOC_ORDER.map((href) => NAV_ITEMS.find((item) => item.href === href));
 
 // ينقل إلى عنوان القسم مباشرة تحت الشريط العلوي (بدل بداية القسم وحشوته العلوية)،
@@ -3145,7 +3287,7 @@ export default function PlanetarySurvivalDocument() {
       </div>
 
       {/* محتوى الوثيقة (نطاق البحث السريع) */}
-      <div ref={contentRef}>
+      <div ref={contentRef} data-doc-content>
         {/* الترويسة الرئيسية */}
         <header
           id="top"
@@ -3205,6 +3347,9 @@ export default function PlanetarySurvivalDocument() {
             <PrintCoverCredits />
           </div>
         </header>
+
+        {/* الملخص الأكاديمي: بطاقة A4 بعد الغلاف مباشرة */}
+        <AcademicSummaryCard notify={notify} />
 
         {/* التشخيص: المشكلة وجذرها */}
         <Diagnosis />

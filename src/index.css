@@ -207,3 +207,68 @@ body {
     box-shadow: 0 0 12px 4px rgba(52, 211, 153, 0.6);
   }
 }
+
+/* ------------------------------------------------------------------ */
+/*  بطاقة الملخص الأكاديمي (A4)                                         */
+/* ------------------------------------------------------------------ */
+
+/* صفحة البطاقة بلا ترويسة ولا ترقيم وبهوامش أصغر */
+@page academic-card {
+  margin: 12mm;
+
+  @top-center {
+    content: none;
+  }
+  @bottom-center {
+    content: none;
+  }
+}
+
+@media print {
+  #academic-summary {
+    background: #fff !important;
+    padding: 0 !important;
+    border: none !important;
+    break-before: page;
+    break-after: page;
+  }
+
+  .psd-a4-card {
+    page: academic-card;
+    /* صفحة A4 كاملة (297mm ناقص هامشي 12mm) */
+    min-height: 272mm;
+    max-width: none;
+    margin: 0;
+    padding: 9mm 11mm !important;
+    border-radius: 6mm;
+    break-inside: avoid;
+    justify-content: space-between;
+  }
+
+  /* نص البطاقة بحجم قراءة مريح على ورق A4 (نحو 11pt) */
+  .psd-a4-card .font-naskh {
+    font-size: 1.22rem !important;
+    line-height: 1.95 !important;
+  }
+
+  .psd-a4-card h3 {
+    font-size: 1.3rem !important;
+  }
+
+  /* رمز QR بقياس ثابت يسهل مسحه من الورق */
+  .psd-qr {
+    width: 52mm !important;
+    height: 52mm !important;
+  }
+
+  /* «طباعة الملخص (A4)»: البطاقة وحدها في صفحة واحدة */
+  html.print-card-only [data-doc-content] > :not(#academic-summary),
+  html.print-card-only .psd-watermark {
+    display: none !important;
+  }
+
+  html.print-card-only #academic-summary {
+    break-before: auto;
+    break-after: auto;
+  }
+}

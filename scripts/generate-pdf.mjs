@@ -6,6 +6,7 @@ import { preview } from 'vite';
 import { chromium } from 'playwright';
 
 const OUTPUT = 'dist/planetary-survival-document.pdf';
+const CARD_OUTPUT = 'dist/academic-summary.pdf';
 
 const server = await preview({ preview: { port: 4321, strictPort: true }, logLevel: 'warn' });
 const browser = await chromium.launch({ executablePath: process.env.PDF_CHROMIUM_PATH || undefined });
@@ -18,6 +19,12 @@ try {
   await page.emulateMedia({ media: 'print' });
   await page.pdf({ path: OUTPUT, preferCSSPageSize: true, printBackground: true });
   console.log(`PDF written to ${OUTPUT}`);
+
+  // بطاقة الملخص الأكاديمي وحدها (صفحة A4 واحدة)، بالصنف نفسه الذي يستخدمه زر «طباعة الملخص»
+  // eslint-disable-next-line no-undef -- تعمل داخل صفحة المتصفح حيث document معرّف
+  await page.evaluate(() => document.documentElement.classList.add('print-card-only'));
+  await page.pdf({ path: CARD_OUTPUT, preferCSSPageSize: true, printBackground: true });
+  console.log(`PDF written to ${CARD_OUTPUT}`);
 } finally {
   await browser.close();
   await new Promise((resolve) => server.httpServer.close(resolve));
