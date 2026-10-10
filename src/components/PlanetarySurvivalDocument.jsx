@@ -90,15 +90,11 @@ const ACADEMIC_SUMMARY = {
   motto: '«خوارزميات الحياة — إعادة كتابة مستقبل الأرض»',
   // ltr: القيمة تُعرض كتلة من اليسار لليمين داخل السياق العربي
   metrics: [
-    { value: '+1.43°C', label: 'الاحترار الحالي', ltr: true },
-    { value: '12 فصلاً', label: 'الرؤية الشاملة' },
-    { value: '-43%', label: 'هدف انبعاثات 2030', ltr: true },
+    { value: '+1.43°C', label: 'الاحترار الحالي', ltr: true, icon: 'heat' },
+    { value: '12 فصلاً', label: 'الرؤية الشاملة', icon: 'layers' },
+    { value: '-43%', label: 'هدف انبعاثات 2030', ltr: true, icon: 'target' },
   ],
-  intro: {
-    label: '1. المقدمة — الاستجابة للنداء الوجودي',
-    text: 'في زمنٍ تتسارع فيه نوبات الاختلال الكوكبي وتتداعى فيه التوازنات الحيوية للأرض، لم تعد أزمة المناخ مجرد قضية بيئية عابرة، بل غدت تحدياً وجودياً يهدد استمرار الحضارة البشرية، مما يحتم علينا الانتقال من حلول التسكين التقليدية إلى صياغة استراتيجية بقاء حاسمة تدمج العلوم البيئية بالهندسة الرقمية المتقدمة.',
-  },
-  cardsLabel: '2. بطاقات التشخيص والحل الهندسي',
+  cardsLabel: '1. بطاقات التشخيص والحل الهندسي',
   cards: [
     {
       tone: 'problem',
@@ -117,11 +113,13 @@ const ACADEMIC_SUMMARY = {
       points: ['ضريبة كربون آلية ذكية', 'توأم رقمي للأرض', 'قياس وتحقق شفاف (MRV)', 'تمويل فوري للاستعادة'],
     },
   ],
-  conclusion: {
-    label: '3. الخاتمة — عهد البقاء',
-    text: 'وختاماً، إن هذا العمل لا يقف عند حدود التوثيق الأكاديمي لبرنامج السنوات المتوسطة (MYP A)، بل يجسد رؤية استشرافية تنطلق من طاقات الشباب لبناء نموذج حي يبرهن كيف يمكن للعلم والهندسة والقرار الحاسم أن يكتبوا السطر الأخير في حماية كوكب الأرض.',
+  qrCaption: 'امسح الرمز ضوئياً للوصول إلى الوثيقة الحية',
+  // ما ينتظر القارئ في الموقع (ميزات حقيقية في الوثيقة الحية)
+  live: {
+    label: '2. الوثيقة الحية',
+    title: 'النسخة التفاعلية الكاملة',
+    features: ['12 فصلاً تفاعلياً', 'بحث فوري داخل النص', 'وضع العرض التقديمي', 'تحميل نسخة للطباعة'],
   },
-  qrCaption: 'امسح الرمز ضوئياً بالأسفل للوصول إلى الوثيقة الحية التفاعلية',
   credits: ['إعداد الطالب: رضا أحمد يوسف', 'إشراف: أستاذ حسن معيوف', 'مدرسة الميثاق الإعدادية للبنين — برنامج MYP A'],
   pdfFile: 'academic-summary.pdf', // يُولَّد عند كل نشر (scripts/generate-pdf.mjs)
 };
@@ -863,7 +861,7 @@ function buildDocumentText(format = 'txt') {
     const para = (label, text) => (md ? `**${label}:** ${text}` : `${label}: ${text}`);
     out.push('', h(2, `${a.title.replace(/\u00a0/g, ' ')} (${a.en})`), a.motto, '');
     out.push(a.metrics.map((m) => `${m.value} ${m.label}`).join(md ? ' · ' : ' | '));
-    out.push('', para(a.intro.label, a.intro.text), '', md ? `**${a.cardsLabel}**` : a.cardsLabel);
+    out.push('', md ? `**${a.cardsLabel}**` : a.cardsLabel);
     a.cards.forEach((card) =>
       out.push(
         '',
@@ -872,7 +870,7 @@ function buildDocumentText(format = 'txt') {
         ...card.points.map((pt) => `- ${pt}`),
       ),
     );
-    out.push('', para(a.conclusion.label, a.conclusion.text), '', divider);
+    out.push('', `${a.live.label}: ${a.qrCaption}`, '', divider);
   }
 
   out.push('', h(2, `${DIAGNOSIS.title}: ${DIAGNOSIS.subtitle}`));
@@ -2173,15 +2171,45 @@ function PrintCoverCredits() {
 }
 
 // التشخيص: المشكلة وسببها الجذر في بطاقتين متقابلتين
-// ورقة الملخص الأكاديمي: لوحة قيادة بمقاس A4. الورقة بيضاء في الوضعين كالورق الحقيقي،
+// ورقة الملخص الأكاديمي: لوحة قيادة بمقاس A4 بخط Cairo. الورقة بيضاء في الوضعين كالورق الحقيقي،
 // والمساحة الزائدة تذهب إلى البطاقات (flex-1) لا إلى فراغات بينها
-const SHEET_NAVY = 'bg-[#13294b]';
+const SHEET_NAVY_GRADIENT = 'bg-gradient-to-l from-[#0b1d3a] via-[#13294b] to-[#1c3d6e]';
+const SHEET_EMERALD_GRADIENT = 'bg-gradient-to-l from-[#065f46] via-[#047857] to-[#059669]';
 
 function SheetLabel({ children, light = false }) {
   return (
-    <p className={`text-xs font-extrabold tracking-wide sm:text-sm ${light ? 'text-emerald-200' : 'text-emerald-700'}`}>
+    <p
+      className={`flex items-center gap-2 text-xs font-extrabold tracking-wide sm:text-sm ${light ? 'text-emerald-200' : 'text-emerald-700'}`}
+    >
+      <span
+        className={`h-1.5 w-5 shrink-0 rounded-full ${light ? 'bg-emerald-300' : 'bg-gradient-to-l from-emerald-400 to-emerald-700'}`}
+        aria-hidden="true"
+      />
       {children}
     </p>
+  );
+}
+
+// أيقونات شريط المؤشرات
+function MetricIcon({ name, className = '' }) {
+  const paths = {
+    heat: 'M10 13.5V4a2 2 0 1 1 4 0v9.5a4 4 0 1 1-4 0ZM12 9v6',
+    layers: 'm12 3 9 5-9 5-9-5 9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5',
+    target: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-4a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0-4a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z',
+  };
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d={paths[name]} />
+    </svg>
   );
 }
 
@@ -2193,7 +2221,7 @@ function AcademicSummaryCard({ notify }) {
       aria-labelledby="academic-summary-title"
       className="scroll-mt-28 border-b border-slate-200 bg-slate-100 px-4 py-14 dark:border-slate-800 dark:bg-slate-900/60 sm:py-20"
     >
-      <article className="psd-a4-card mx-auto flex max-w-[210mm] flex-col gap-3 rounded-2xl border-[3px] border-double border-[#13294b] bg-white p-4 text-[#13294b] shadow-xl sm:gap-4 sm:p-7">
+      <article className="psd-a4-card mx-auto flex max-w-[210mm] flex-col gap-3 rounded-2xl border-[3px] border-double border-[#13294b] bg-white p-4 font-cairo text-[#13294b] shadow-xl sm:gap-4 sm:p-7">
         {/* الترويسة */}
         <header className="flex items-center gap-3 border-b-2 border-[#13294b]/80 pb-3 sm:gap-4">
           <PlanetLogo className="h-12 w-12 shrink-0 sm:h-16 sm:w-16" />
@@ -2204,38 +2232,44 @@ function AcademicSummaryCard({ notify }) {
             >
               {a.en} · MYP A
             </p>
-            <h2 id="academic-summary-title" className="psd-sheet-title text-lg font-black leading-snug sm:text-2xl">
+            <h2
+              id="academic-summary-title"
+              className="psd-sheet-title text-xl font-black leading-snug tracking-tight text-[#0b1d3a] sm:text-[1.7rem]"
+            >
               <Inline text={a.title} />
             </h2>
-            <p className="mt-0.5 text-sm font-bold text-emerald-700 sm:text-base">{a.motto}</p>
+            <p className="psd-sheet-motto mt-0.5 text-sm font-bold text-emerald-700 sm:text-lg">{a.motto}</p>
           </div>
         </header>
 
-        {/* شريط المؤشرات */}
+        {/* شريط المؤشرات: بطاقات زجاجية كحلية بأرقام نيون زمردية */}
         <dl className="grid grid-cols-3 gap-2 sm:gap-3">
           {a.metrics.map((m) => (
             <div
               key={m.label}
-              className={`rounded-xl ${SHEET_NAVY} px-2 py-2.5 text-center ring-1 ring-emerald-400/40 sm:py-3`}
+              className="psd-metric-tile relative overflow-hidden rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-[#0b1d3a] via-[#13294b] to-[#0f4a4a] px-2 py-3 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_8px_20px_-8px_rgba(11,29,58,0.6)] sm:py-4"
             >
+              {/* لمعة زجاجية علوية */}
+              <span
+                className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/15 to-transparent"
+                aria-hidden="true"
+              />
+              <MetricIcon
+                name={m.icon}
+                className="relative mx-auto mb-1 h-5 w-5 text-emerald-300/90 sm:h-6 sm:w-6"
+              />
               <dd
                 dir={m.ltr ? 'ltr' : undefined}
-                className="psd-metric font-mono text-xl font-black text-emerald-300 sm:text-3xl"
+                className="psd-metric relative whitespace-nowrap text-xl font-black leading-tight text-emerald-300 [text-shadow:0_0_14px_rgba(52,211,153,0.55)] sm:text-4xl"
               >
                 {m.value}
               </dd>
-              <dt className="mt-1 text-[0.7rem] font-bold text-slate-200 sm:text-xs">{m.label}</dt>
+              <dt className="psd-metric-label relative mt-1 text-[0.72rem] font-bold tracking-wide text-slate-100 sm:text-sm">
+                {m.label}
+              </dt>
             </div>
           ))}
         </dl>
-
-        {/* المقدمة */}
-        <section className="rounded-xl border border-emerald-200 bg-emerald-50/60 px-4 py-3">
-          <SheetLabel>{a.intro.label}</SheetLabel>
-          <p className="psd-sheet-text mt-1.5 font-naskh text-[0.98rem] leading-[1.9] text-slate-800 sm:text-justify sm:text-lg print:text-justify">
-            <Inline text={a.intro.text} />
-          </p>
-        </section>
 
         {/* بطاقتا التشخيص والحل: تتمددان لملء المساحة */}
         <section className="flex flex-1 flex-col gap-2">
@@ -2246,13 +2280,21 @@ function AcademicSummaryCard({ notify }) {
               return (
                 <article
                   key={card.label}
-                  className={`flex flex-col overflow-hidden rounded-xl border-2 ${solution ? 'border-emerald-600' : 'border-[#13294b]'}`}
+                  className={`flex flex-col overflow-hidden rounded-2xl border shadow-[0_10px_24px_-14px_rgba(11,29,58,0.55)] ${solution ? 'border-emerald-500/70 bg-gradient-to-b from-emerald-50/80 to-white' : 'border-[#13294b]/50 bg-gradient-to-b from-slate-100/90 to-white'}`}
                 >
-                  <header className={`px-4 py-2.5 ${solution ? 'bg-emerald-600' : SHEET_NAVY}`}>
+                  <header
+                    className={`relative overflow-hidden px-4 py-3 ${solution ? SHEET_EMERALD_GRADIENT : SHEET_NAVY_GRADIENT}`}
+                  >
+                    <span
+                      className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/15 to-transparent"
+                      aria-hidden="true"
+                    />
                     <SheetLabel light>{card.label}</SheetLabel>
-                    <h3 className="text-base font-black text-white sm:text-lg">[{card.title}]</h3>
+                    <h3 className="psd-card-title relative mt-0.5 text-lg font-black leading-snug text-white sm:text-xl">
+                      [{card.title}]
+                    </h3>
                   </header>
-                  <p className="psd-sheet-text px-4 py-3 font-naskh text-[0.98rem] leading-[1.9] text-slate-800 sm:text-justify sm:text-lg print:text-justify">
+                  <p className="psd-sheet-text px-4 py-3 text-[0.98rem] font-semibold leading-[1.95] tracking-[0.005em] text-slate-700 sm:text-lg">
                     <Inline text={card.text} />
                   </p>
                   {/* محاور مختصرة تملأ البطاقة حتى قاعها */}
@@ -2262,15 +2304,17 @@ function AcademicSummaryCard({ notify }) {
                       {card.points.map((point, i) => (
                         <li
                           key={point}
-                          className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-bold leading-snug sm:text-sm ${solution ? 'border-emerald-300 bg-emerald-50 text-emerald-900' : 'border-[#13294b]/25 bg-slate-100 text-[#13294b]'}`}
+                          className={`flex items-center gap-2 rounded-xl border px-2.5 py-2 text-xs font-bold leading-snug sm:text-sm ${solution ? 'border-emerald-300 bg-white/80 text-emerald-900' : 'border-[#13294b]/20 bg-white/80 text-[#13294b]'}`}
                         >
                           <span
-                            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-mono text-[0.7rem] text-white ${solution ? 'bg-emerald-600' : SHEET_NAVY}`}
+                            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-[0.72rem] font-black text-white shadow-sm ${solution ? 'bg-gradient-to-br from-emerald-400 to-emerald-700' : 'bg-gradient-to-br from-[#2b4f86] to-[#0b1d3a]'}`}
                             aria-hidden="true"
                           >
                             {i + 1}
                           </span>
-                          <Inline text={point} />
+                          <span>
+                            <Inline text={point} />
+                          </span>
                         </li>
                       ))}
                     </ul>
@@ -2281,21 +2325,31 @@ function AcademicSummaryCard({ notify }) {
           </div>
         </section>
 
-        {/* الخاتمة + بطاقة QR */}
-        <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-          <section className="flex flex-col justify-center rounded-xl border border-[#13294b]/25 bg-slate-50 px-4 py-3">
-            <SheetLabel>{a.conclusion.label}</SheetLabel>
-            <p className="psd-sheet-text mt-1.5 font-naskh text-[0.98rem] leading-[1.9] text-slate-800 sm:text-justify sm:text-lg print:text-justify">
-              <Inline text={a.conclusion.text} />
-            </p>
-          </section>
-          <figure className="psd-qr-card mx-auto flex w-56 flex-col items-center gap-2 rounded-xl border-2 border-emerald-500 bg-white p-3 text-center shadow-[0_0_0_3px_rgba(16,185,129,0.15),0_0_18px_rgba(16,185,129,0.45)] sm:w-48">
-            <figcaption className="text-sm font-black leading-snug text-[#13294b]">{a.qrCaption}</figcaption>
-            <span className="text-lg leading-none text-emerald-600" aria-hidden="true">
-              ↓
-            </span>
+        {/* شريط الوثيقة الحية + بطاقة QR */}
+        <section
+          className={`psd-live-band flex flex-col items-center gap-4 overflow-hidden rounded-2xl border border-emerald-400/40 ${SHEET_NAVY_GRADIENT} p-4 sm:flex-row sm:items-stretch sm:p-5`}
+        >
+          <div className="flex flex-1 flex-col justify-center gap-2 text-center sm:text-start">
+            <SheetLabel light>{a.live.label}</SheetLabel>
+            <p className="psd-live-title text-xl font-black leading-snug text-white sm:text-2xl">{a.live.title}</p>
+            <ul className="mt-1 grid grid-cols-2 gap-2">
+              {a.live.features.map((f) => (
+                <li
+                  key={f}
+                  className="psd-live-chip flex items-center gap-2 rounded-xl border border-emerald-400/30 bg-white/10 px-3 py-2 text-xs font-bold text-emerald-50 sm:text-sm"
+                >
+                  <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-300 shadow-[0_0_8px_rgba(110,231,183,0.9)]" />
+                  <Inline text={f} />
+                </li>
+              ))}
+            </ul>
+          </div>
+          <figure className="psd-qr-card flex shrink-0 flex-col items-center gap-2 rounded-2xl bg-white p-3 text-center shadow-[0_0_0_3px_rgba(16,185,129,0.35),0_0_22px_rgba(16,185,129,0.55)]">
+            <figcaption className="psd-qr-caption max-w-[170px] text-sm font-black leading-snug text-[#0b1d3a]">
+              {a.qrCaption}
+            </figcaption>
             {/* الصورة مطلقة الموضع داخل صندوق بقياس ثابت: يمنع Chrome من ترحيلها إلى صفحة ثانية عند الطباعة */}
-            <div className="psd-qr relative h-40 w-40">
+            <div className="psd-qr relative h-[140px] w-[140px] bg-white">
               <img
                 src={qrCodeImage}
                 alt="رمز QR للوصول إلى وثيقة البقاء الكوكبي التفاعلية"
@@ -2305,11 +2359,11 @@ function AcademicSummaryCard({ notify }) {
               />
             </div>
           </figure>
-        </div>
+        </section>
 
         {/* شريط التوثيق */}
         <footer
-          className={`flex flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-xl ${SHEET_NAVY} px-4 py-2.5 text-center text-xs font-bold text-white sm:text-sm`}
+          className={`psd-credits flex flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-xl ${SHEET_NAVY_GRADIENT} px-4 py-3 text-center text-xs font-bold tracking-wide text-white sm:text-sm`}
         >
           {a.credits.map((item, i) => (
             <Fragment key={item}>

@@ -1,3 +1,6 @@
+/* خط Cairo لورقة الملخص (A4). يجب أن يسبق @import كل القواعد الأخرى */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -248,35 +251,69 @@ body {
 
   /* أحجام الورق (بالـ pt) بدل أحجام الشاشة */
   .psd-a4-card .psd-sheet-title {
-    font-size: 14.5pt !important;
+    font-size: 16pt !important;
+    letter-spacing: -0.01em;
+  }
+
+  .psd-a4-card .psd-sheet-motto {
+    font-size: 11.5pt !important;
   }
 
   .psd-a4-card .psd-metric {
-    font-size: 17pt !important;
+    font-size: 23pt !important;
+  }
+
+  .psd-a4-card .psd-metric-label {
+    font-size: 9.5pt !important;
   }
 
   .psd-a4-card .psd-sheet-text {
-    font-size: 11.4pt !important;
-    line-height: 1.85 !important;
+    font-size: 12pt !important;
+    line-height: 1.9 !important;
   }
 
-  /* بطاقة QR: لا توهج على الورق (لا تطبع الظلال)، بل إطار زمردي مزدوج */
+  .psd-a4-card .psd-card-title {
+    font-size: 13.5pt !important;
+  }
+
   /* محاور البطاقتين */
   .psd-card-points li {
-    font-size: 8.8pt !important;
-    padding: 2mm 2.4mm !important;
+    font-size: 10.4pt !important;
+    line-height: 1.55 !important;
+    padding: 2.2mm 2.4mm !important;
+  }
+
+  .psd-live-band {
+    padding: 3.5mm 4.5mm !important;
+    gap: 4mm !important;
   }
 
   .psd-qr-card {
-    width: 50mm !important;
-    border-style: double !important;
-    border-width: 4px !important;
+    padding: 2.5mm !important;
+    gap: 1.5mm !important;
   }
 
-  /* رمز QR بقياس ثابت يسهل مسحه من الورق */
+  .psd-live-title {
+    font-size: 14pt !important;
+  }
+
+  .psd-live-chip {
+    font-size: 9.6pt !important;
+  }
+
+  .psd-qr-caption {
+    font-size: 10pt !important;
+    max-width: 44mm !important;
+  }
+
+  /* رمز QR: 140px ≈ 37mm على الورق، قياس مريح للمسح */
   .psd-qr {
-    width: 40mm !important;
-    height: 40mm !important;
+    width: 140px !important;
+    height: 140px !important;
+  }
+
+  .psd-credits {
+    font-size: 9.5pt !important;
   }
 
   /* «طباعة الملخص (A4)»: البطاقة وحدها في صفحة واحدة */
