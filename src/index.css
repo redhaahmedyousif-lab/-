@@ -214,7 +214,7 @@ body {
 
 /* صفحة البطاقة بلا ترويسة ولا ترقيم وبهوامش أصغر */
 @page academic-card {
-  margin: 12mm;
+  margin: 10mm;
 
   @top-center {
     content: none;
@@ -235,30 +235,48 @@ body {
 
   .psd-a4-card {
     page: academic-card;
-    /* صفحة A4 كاملة (297mm ناقص هامشي 12mm) */
-    min-height: 272mm;
+    /* صفحة A4: 297mm ناقص هامشي 10mm = 277mm، مع 2mm احتياطاً؛ لو ساوت المساحةَ تماماً
+       لقسّمها Chrome على صفحتين بسبب كسور التقريب */
+    height: 275mm;
     max-width: none;
     margin: 0;
-    padding: 9mm 11mm !important;
-    border-radius: 6mm;
+    padding: 6mm 7mm !important;
+    gap: 3.4mm !important;
+    border-radius: 5mm;
     break-inside: avoid;
-    justify-content: space-between;
   }
 
-  /* نص البطاقة بحجم قراءة مريح على ورق A4 (نحو 11pt) */
-  .psd-a4-card .font-naskh {
-    font-size: 1.22rem !important;
-    line-height: 1.95 !important;
+  /* أحجام الورق (بالـ pt) بدل أحجام الشاشة */
+  .psd-a4-card .psd-sheet-title {
+    font-size: 14.5pt !important;
   }
 
-  .psd-a4-card h3 {
-    font-size: 1.3rem !important;
+  .psd-a4-card .psd-metric {
+    font-size: 17pt !important;
+  }
+
+  .psd-a4-card .psd-sheet-text {
+    font-size: 11.4pt !important;
+    line-height: 1.85 !important;
+  }
+
+  /* بطاقة QR: لا توهج على الورق (لا تطبع الظلال)، بل إطار زمردي مزدوج */
+  /* محاور البطاقتين */
+  .psd-card-points li {
+    font-size: 8.8pt !important;
+    padding: 2mm 2.4mm !important;
+  }
+
+  .psd-qr-card {
+    width: 50mm !important;
+    border-style: double !important;
+    border-width: 4px !important;
   }
 
   /* رمز QR بقياس ثابت يسهل مسحه من الورق */
   .psd-qr {
-    width: 52mm !important;
-    height: 52mm !important;
+    width: 40mm !important;
+    height: 40mm !important;
   }
 
   /* «طباعة الملخص (A4)»: البطاقة وحدها في صفحة واحدة */
